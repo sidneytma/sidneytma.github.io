@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UI Elements Demo</title>
+    <link rel="stylesheet" href="css/ui-style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>UI Elements Showcase</h1>
+        <p class="intro">A collection of common user interface elements</p>
+        
+        <section class="ui-section">
+            <h2>Buttons</h2>
+            <div class="button-group">
+                <button class="btn btn-primary">Primary Button</button>
+                <button class="btn btn-secondary">Secondary Button</button>
+                <button class="btn btn-success">Success Button</button>
+                <button class="btn btn-danger">Danger Button</button>
+                <button class="btn btn-outline">Outline Button</button>
+                <button class="btn btn-disabled" disabled>Disabled Button</button>
+            </div>
+        </section>
+        
+        <section class="ui-section">
+            <h2>Text Inputs</h2>
+            <div class="input-group">
+                <label for="text-input">Text Input:</label>
+                <input type="text" id="text-input" placeholder="Enter text here">
+                
+                <label for="email-input">Email Input:</label>
+                <input type="email" id="email-input" placeholder="email@example.com">
+                
+                <label for="password-input">Password Input:</label>
+                <input type="password" id="password-input" placeholder="Enter password">
+                
+                <label for="textarea">Text Area:</label>
+                <textarea id="textarea" rows="4" placeholder="Enter multiple lines of text"></textarea>
+            </div>
+        </section>
+        
+        <section class="ui-section">
+            <h2>Dropdowns & Selects</h2>
+            <div class="input-group">
+                <label for="dropdown">Basic Dropdown:</label>
+                <select id="dropdown" class="select-box">
+                    <option value="">Select an option...</option>
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                    <option value="option3">Option 3</option>
+                    <option value="option4">Option 4</option>
+                </select>
+                
+                <label for="multiple-select">Multiple Select (hold Ctrl/Cmd):</label>
+                <select id="multiple-select" class="select-box" multiple size="4">
+                    <option value="choice1">Choice 1</option>
+                    <option value="choice2">Choice 2</option>
+                    <option value="choice3">Choice 3</option>
+                    <option value="choice4">Choice 4</option>
+                </select>
+            </div>
+        </section>
+        
+        <section class="ui-section">
+            <h2>Checkboxes & Radio Buttons</h2>
+            <div class="input-group">
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="interests" value="music">
+                        <span>Music</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="interests" value="coding">
+                        <span>Coding</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="interests" value="cooking">
+                        <span>Cooking</span>
+                    </label>
+                </div>
+                
+                <p><strong>Choose one option:</strong></p>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="experience" value="beginner">
+                        <span>Beginner</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="experience" value="intermediate">
+                        <span>Intermediate</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="experience" value="advanced">
+                        <span>Advanced</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+        
+        <section class="ui-section">
+            <h2>Sliders & Range Inputs</h2>
+            <div class="input-group">
+                <label for="slider1">Volume Control:</label>
+                <input type="range" id="slider1" min="0" max="100" value="50" class="slider">
+                <span id="slider1-value" class="slider-value">50</span>
+                
+                <label for="slider2">Opacity:</label>
+                <input type="range" id="slider2" min="0" max="100" value="75" class="slider">
+                <span id="slider2-value" class="slider-value">75</span>
+                
+                <label for="slider3">Temperature:</label>
+                <input type="range" id="slider3" min="-10" max="40" value="20" class="slider">
+                <span id="slider3-value" class="slider-value">20°C</span>
+            </div>
+        </section>
+        
+        <section class="ui-section">
+            <h2>Toggle Switch</h2>
+            <div class="input-group">
+                <label class="switch">
+                    <input type="checkbox" id="toggle1">
+                    <span class="switch-slider"></span>
+                </label>
+                <span>Enable notifications</span>
+                
+                <label class="switch">
+                    <input type="checkbox" id="toggle2" checked>
+                    <span class="switch-slider"></span>
+                </label>
+                <span>Dark mode</span>
+            </div>
+        </section>
+        
+        <section class="ui-section">
+            <h2>Progress Bars</h2>
+            <div class="progress-group">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 30%"></div>
+                </div>
+                <p>30% Complete</p>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill progress-success" style="width: 75%"></div>
+                </div>
+                <p>75% Complete</p>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill progress-danger" style="width: 100%"></div>
+                </div>
+                <p>100% Complete</p>
+            </div>
+        </section>
+        
+        <section class="ui-section">
+            <h2>Date & Time Inputs</h2>
+            <div class="input-group">
+                <label for="date-input">Date:</label>
+                <input type="date" id="date-input" class="date-input">
+                
+                <label for="time-input">Time:</label>
+                <input type="time" id="time-input" class="date-input">
+                
+                <label for="color-input">Color Picker:</label>
+                <input type="color" id="color-input" value="#4CAF50" class="color-input">
+            </div>
+        </section>
+        
+        <section class="ui-section">
+            <h2>File Upload</h2>
+            <div class="input-group">
+                <label for="file-input" class="file-label">Choose File</label>
+                <input type="file" id="file-input" class="file-input">
+                <span id="file-name" class="file-name">No file chosen</span>
+            </div>
+        </section>
+        
+        <a href="index.html" class="back-link">← Back to Home</a>
+    </div>
+    
+    <script src="ui-script.js"></script>
+</body>
+</html>
