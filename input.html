@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Input Tracker - Your Name</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+        
+        .info {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        #keys-display {
+            min-height: 40px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Input Tracker</h1>
+    
+    <div class="section">
+        <h2>Keyboard</h2>
+        <p class="info">Keys currently pressed:</p>
+        <div id="keys-display">No keys pressed</div>
+    </div>
+    
+    <div class="section">
+        <h2>Mouse</h2>
+        <p class="info">Position: <span id="mouse-x">0</span>, <span id="mouse-y">0</span></p>
+        <p class="info">Mouse button: <span id="mouse-status">Up</span></p>
+    </div>
+    
+    <a href="index.html">Back to Home</a>
+    
+    <script>
+        // Track keyboard
+        const keysDown = new Set();
+        const keysDisplay = document.getElementById('keys-display');
+        
+        document.addEventListener('keydown', function(e) {
+            keysDown.add(e.key);
+            updateKeysDisplay();
+        });
+        
+        document.addEventListener('keyup', function(e) {
+            keysDown.delete(e.key);
+            updateKeysDisplay();
+        });
+        
+        function updateKeysDisplay() {
+            if (keysDown.size === 0) {
+                keysDisplay.textContent = 'No keys pressed';
+            } else {
+                keysDisplay.textContent = Array.from(keysDown).join(', ');
+            }
+        }
+        
+        // Track mouse position
+        const mouseX = document.getElementById('mouse-x');
+        const mouseY = document.getElementById('mouse-y');
+        const mouseStatus = document.getElementById('mouse-status');
+        
+        document.addEventListener('mousemove', function(e) {
+            mouseX.textContent = e.clientX;
+            mouseY.textContent = e.clientY;
+        });
+        
+        document.addEventListener('mousedown', function(e) {
+            mouseStatus.textContent = 'Down';
+            mouseStatus.style.color = 'red';
+            mouseStatus.style.fontWeight = 'bold';
+        });
+        
+        document.addEventListener('mouseup', function(e) {
+            mouseStatus.textContent = 'Up';
+            mouseStatus.style.color = 'green';
+            mouseStatus.style.fontWeight = 'bold';
+        });
+    </script>
+</body>
+</html>
