@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Media Demo - Your Name</title>
+    <link rel="stylesheet" href="media-style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Media Demo Page</h1>
+        
+        <h2>Image Example</h2>
+        <p>Here's how to display an image:</p>
+        
+        <img src="images/sample-image.jpg" alt="Description of the image" class="demo-image">
+        
+        <p class="caption">This is a caption for the image above</p>
+        
+        <h2>Different Image Sizes</h2>
+        <div class="image-gallery">
+            <img src="images/small.jpg" alt="Small image" class="small-image">
+            <img src="images/medium.jpg" alt="Medium image" class="medium-image">
+            <img src="images/large.jpg" alt="Large image" class="large-image">
+        </div>
+        
+        <h2>Audio Example</h2>
+        <p>Here's an audio player:</p>
+        
+        <audio controls class="audio-player">
+            <source src="audio/sample-audio.mp3" type="audio/mpeg">
+            <source src="audio/sample-audio.ogg" type="audio/ogg">
+            Your browser does not support the audio element.
+        </audio>
+        
+        <p class="audio-info">Sample audio file - click play to listen</p>
+        
+        <h2>Multiple Audio Files</h2>
+        <div class="audio-list">
+            <div class="audio-item">
+                <p><strong>Track 1:</strong> Sample Sound</p>
+                <audio controls>
+                    <source src="audio/track1.mp3" type="audio/mpeg">
+                </audio>
+            </div>
+            
+            <div class="audio-item">
+                <p><strong>Track 2:</strong> Another Sample</p>
+                <audio controls>
+                    <source src="audio/track2.mp3" type="audio/mpeg">
+                </audio>
+            </div>
+        </div>
+        
+        <a href="index.html" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html>
