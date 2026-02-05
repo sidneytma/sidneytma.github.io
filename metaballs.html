@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metaballs</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #1a1a1a;
+            font-family: system-ui, -apple-system, sans-serif;
+            color: #fff;
+        }
+        
+        canvas {
+            border: 2px solid #444;
+            border-radius: 8px;
+            background: #000;
+            cursor: crosshair;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        label {
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        input[type="range"] {
+            width: 150px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #4a9eff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #3a8eef;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" style="text-decoration: none; color: #4a9eff; margin-bottom: 10px;">← Back to Home</a>
+    <h1>Metaballs Demo</h1>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Threshold: <span id="thresholdVal">1.0</span></label>
+            <input type="range" id="threshold" min="0.5" max="2" step="0.1" value="1.0">
+        </div>
+        <div class="control-group">
+            <label>Ball Count: <span id="countVal">5</span></label>
+            <input type="range" id="ballCount" min="2" max="10" step="1" value="5">
+        </div>
+        <div class="control-group">
+            <label>Resolution: <span id="resVal">4</span></label>
+            <input type="range" id="resolution" min="2" max="8" step="1" value="4">
+        </div>
+        <button id="resetBtn">Reset Balls</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let balls = [];
+        let threshold = 1.0;
+        let resolution = 4; // Sample every N pixels for performance
+        
+        class Metaball {
+            constructor(x, y, radius, vx, vy) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.vx = vx;
+                this.vy = vy;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Bounce off walls
+                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+                    this.vx *= -1;
+                    this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+                }
+                if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
+                    this.vy *= -1;
+                    this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+                }
+            }
+            
+            // Calculate the influence of this metaball at point (x, y)
+            influence(x, y) {
+                const dx = x - this.x;
+                const dy = y - this.y;
+                const distSq = dx * dx + dy * dy;
+                
+                if (distSq === 0) return Infinity;
+                
+                // Metaball formula: radius² / distance²
+                return (this.radius * this.radius) / distSq;
+            }
+        }
+        
+        function initBalls(count) {
+            balls = [];
+            for (let i = 0; i < count; i++) {
+                const radius = 40 + Math.random() * 40;
+                const x = radius + Math.random() * (canvas.width - 2 * radius);
+                const y = radius + Math.random() * (canvas.height - 2 * radius);
+                const vx = (Math.random() - 0.5) * 3;
+                const vy = (Math.random() - 0.5) * 3;
+                balls.push(new Metaball(x, y, radius, vx, vy));
+            }
+        }
+        
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Create image data for pixel manipulation
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // Calculate metaball field for each pixel (sampled at resolution)
+            for (let y = 0; y < canvas.height; y += resolution) {
+                for (let x = 0; x < canvas.width; x += resolution) {
+                    let sum = 0;
+                    
+                    // Sum up influence from all balls
+                    for (let ball of balls) {
+                        sum += ball.influence(x, y);
+                    }
+                    
+                    // If sum exceeds threshold, draw the pixel
+                    if (sum >= threshold) {
+                        // Color based on field strength for visual interest
+                        const intensity = Math.min(255, sum * 50);
+                        const r = intensity;
+                        const g = intensity * 0.6;
+                        const b = intensity * 1.2;
+                        
+                        // Fill a block of pixels for the resolution
+                        for (let dy = 0; dy < resolution && y + dy < canvas.height; dy++) {
+                            for (let dx = 0; dx < resolution && x + dx < canvas.width; dx++) {
+                                const idx = ((y + dy) * canvas.width + (x + dx)) * 4;
+                                data[idx] = r;
+                                data[idx + 1] = g;
+                                data[idx + 2] = b;
+                                data[idx + 3] = 255;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+        }
+        
+        function animate() {
+            // Update ball positions
+            for (let ball of balls) {
+                ball.update();
+            }
+            
+            draw();
+            requestAnimationFrame(animate);
+        }
+        
+        // Controls
+        document.getElementById('threshold').addEventListener('input', (e) => {
+            threshold = parseFloat(e.target.value);
+            document.getElementById('thresholdVal').textContent = threshold.toFixed(1);
+        });
+        
+        document.getElementById('ballCount').addEventListener('input', (e) => {
+            const count = parseInt(e.target.value);
+            document.getElementById('countVal').textContent = count;
+            initBalls(count);
+        });
+        
+        document.getElementById('resolution').addEventListener('input', (e) => {
+            resolution = parseInt(e.target.value);
+            document.getElementById('resVal').textContent = resolution;
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            initBalls(balls.length);
+        });
+        
+        // Click to add a ball at mouse position
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const radius = 50;
+            const vx = (Math.random() - 0.5) * 3;
+            const vy = (Math.random() - 0.5) * 3;
+            balls.push(new Metaball(x, y, radius, vx, vy));
+        });
+        
+        // Initialize and start
+        initBalls(5);
+        animate();
+    </script>
+</body>
+</html>
