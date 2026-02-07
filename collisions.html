@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Playground</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            background: #1a1a1a;
+            font-family: monospace;
+            color: #fff;
+            justify-content: center;
+        }
+        
+        #canvas {
+            border: 2px solid #444;
+            background: #000;
+        }
+        
+        .controls {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .control-group {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #4a9eff;
+        }
+        
+        .control-item {
+            margin: 10px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+        }
+        
+        .value-display {
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4a9eff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        
+        button:hover {
+            background: #3a8eef;
+        }
+        
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 8px;
+            background: #3a3a3a;
+            border: 2px solid #4a4a4a;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .toggle-btn.active {
+            background: #4a9eff;
+            border-color: #4a9eff;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" style="text-decoration: none; color: #4a9eff; margin-bottom: 10px;">← Back to Home</a>
+    <canvas id="canvas" width="700" height="700"></canvas>
+    
+    <div class="controls">
+        <div class="control-group">
+            <h3>Physics Mode</h3>
+            <div class="toggle-group">
+                <div class="toggle-btn active" id="mechanicalBtn">Mechanical</div>
+                <div class="toggle-btn" id="electromagneticBtn">Electromagnetic</div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3>Sound Model</h3>
+            <div class="toggle-group">
+                <div class="toggle-btn active" id="energylessBtn">Energyless</div>
+                <div class="toggle-btn" id="realisticBtn">Realistic</div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3>Parameters</h3>
+            <div class="control-item">
+                <label id="inelasticityLabel">Coefficient of Restitution: <span class="value-display" id="inelasticityVal">1.00</span></label>
+                <input type="range" id="inelasticity" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div class="control-item">
+                <label>Time Speed: <span class="value-display" id="speedVal">1.0x</span></label>
+                <input type="range" id="speed" min="0.1" max="3" step="0.1" value="1">
+            </div>
+            <div class="control-item">
+                <label>Number of Balls: <span class="value-display" id="ballCountVal">8</span></label>
+                <input type="range" id="ballCount" min="2" max="20" step="1" value="8">
+            </div>
+            <div class="control-item">
+                <label>Master Volume: <span class="value-display" id="volumeVal">100%</span></label>
+                <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+            </div>
+        </div>
+        
+        <button id="resetBtn">Reset</button>
+    </div>
+
+    <script src="js/collisions-script.js"></script>
+</body>
+</html>
