@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colored Noise</title>
+  <link rel="stylesheet" href="css/noise-style.css">
+</head>
+<body>
+  <div class="container">
+    <div id="loading" class="loading">
+      <h2>Generating Noise Samples...</h2>
+      <div class="progress-bar">
+        <div id="progressBar" class="progress-fill"></div>
+      </div>
+      <p id="progressText">0%</p>
+    </div>
+
+    <div id="app" style="display: none;">
+      <a href="index.html" class="back-link">← Back to Home</a>
+    
+      <h1>Colored Noise</h1>
+      
+      <div class="panel">
+        <div class="slider-container">
+          <div class="slider-header">
+            <div>Power Exponent (β): <span id="betaValue">0</span></div>
+            <div id="noiseName" class="noise-name"></div>
+          </div>
+          <input type="range" id="betaSlider" min="-4" max="4" step="1" value="0">
+          <div class="slider-marks">
+            <span>-4</span>
+            <span>-3</span>
+            <span>-2</span>
+            <span>-1</span>
+            <span>0</span>
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+          </div>
+        </div>
+        
+        <button id="playButton">▶ Play</button>
+      </div>
+      
+      <div class="viz-container">
+        <div class="viz-panel">
+          <h3>Audio Spectrum</h3>
+          <canvas id="spectrumCanvas" width="800" height="400"></canvas>
+        </div>
+        
+        <div class="viz-panel">
+          <h3>Visible Light Spectrum</h3>
+          <canvas id="lightCanvas" width="800" height="400"></canvas>
+        </div>
+      </div>
+      
+      <div class="viz-container">
+        <div class="viz-panel">
+          <h3>Waveform</h3>
+          <canvas id="waveformCanvas" width="800" height="400"></canvas>
+        </div>
+        
+        <div class="viz-panel">
+          <h3>Integrated Color</h3>
+          <canvas id="colorCanvas" width="800" height="400"></canvas>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  <script src="js/noise-script.js"></script>
+</body>
+</html>
