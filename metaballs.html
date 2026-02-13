@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minkowski Metaballs</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #111827;
+      color: #fff;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #60a5fa;
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: #93c5fd;
+    }
+
+    .back-link::before {
+      content: '← ';
+    }
+
+    .container {
+      display: flex;
+      gap: 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .left-column {
+      width: 512px;
+      flex-shrink: 0;
+    }
+
+    .middle-column {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-size: 1.875rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 512px;
+      height: 512px;
+    }
+
+    #metaballCanvas {
+      border: 2px solid #4b5563;
+      image-rendering: pixelated;
+    }
+
+    .audio-toggle {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 0.25rem;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .audio-toggle.active {
+      background-color: #16a34a;
+    }
+
+    .audio-toggle.active:hover {
+      background-color: #15803d;
+    }
+
+    .audio-toggle.inactive {
+      background-color: #374151;
+    }
+
+    .audio-toggle.inactive:hover {
+      background-color: #4b5563;
+    }
+
+    .controls-below {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .right-column {
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .control-group {
+      background-color: #1f2937;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+    }
+
+    .control-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .mode-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .mode-button {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border: none;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .mode-button.active {
+      background-color: #2563eb;
+      color: white;
+    }
+
+    .mode-button.inactive {
+      background-color: #374151;
+      color: #d1d5db;
+    }
+
+    .mode-button.inactive:hover {
+      background-color: #4b5563;
+    }
+
+    select {
+      width: 100%;
+      background-color: #374151;
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border: none;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+
+    .gradient-preview {
+      width: 100%;
+      height: 2rem;
+      border-radius: 0.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .slider-group {
+      margin-top: 0.5rem;
+    }
+
+    .slider-label {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .helper-text {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 0.25rem;
+    }
+
+    .reset-button {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.25rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .reset-button:hover {
+      background-color: #1d4ed8;
+    }
+
+    .unit-circle-container {
+      background-color: #1f2937;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    #unitCircleCanvas {
+      border-radius: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">Back to Home</a>
+  
+  <div class="container">
+    <!-- Left Column: Canvas -->
+    <div class="left-column">
+      <h1>Minkowski Metaballs</h1>
+      
+      <div class="canvas-container">
+        <canvas id="metaballCanvas" width="256" height="256"></canvas>
+        <button id="audioToggle" class="audio-toggle inactive" title="Toggle audio">🔇</button>
+      </div>
+    </div>
+
+    <!-- Middle Column: Unit circle and parameters -->
+    <div class="middle-column">
+      <!-- Unit Circle -->
+      <div class="unit-circle-container">
+        <canvas id="unitCircleCanvas" width="200" height="200"></canvas>
+      </div>
+
+      <!-- P-value -->
+      <div class="control-group">
+        <label class="control-label">p-value: <span id="pValue">2.00</span></label>
+        <input type="range" id="pSlider" min="0" max="100" step="0.1" value="50">
+        <div class="helper-text" id="pHelper">Circle-ish</div>
+      </div>
+
+      <!-- Threshold -->
+      <div class="control-group">
+        <label class="control-label">Threshold: <span id="thresholdValue">2.50</span></label>
+        <input type="range" id="thresholdSlider" min="0.5" max="5" step="0.1" value="2.5">
+        <div class="helper-text" id="thresholdHelper">Falloff rate</div>
+      </div>
+
+      <!-- Metaballs -->
+      <div class="control-group">
+        <label class="control-label">Metaballs: <span id="numBallsValue">4</span></label>
+        <input type="range" id="numBallsSlider" min="2" max="12" step="1" value="4">
+      </div>
+
+      <!-- Reset Button -->
+      <button id="resetBtn" class="reset-button">Reset Positions</button>
+    </div>
+
+    <!-- Right Column: Mode and color controls -->
+    <div class="right-column">
+      <!-- Mode -->
+      <div class="control-group">
+        <label class="control-label">Mode</label>
+        <div class="mode-buttons">
+          <button id="discreteBtn" class="mode-button inactive">Discrete</button>
+          <button id="continuousBtn" class="mode-button active">Continuous</button>
+        </div>
+      </div>
+
+      <!-- Colormap -->
+      <div class="control-group">
+        <label class="control-label">Colormap</label>
+        <select id="colormapSelect">
+          <option value="hot">Hot</option>
+          <option value="cool">Cool</option>
+          <option value="grayscale">Grayscale</option>
+          <option value="picnic">Picnic</option>
+          <option value="rainbow">Rainbow</option>
+          <option value="viridis">Viridis</option>
+          <option value="plasma">Plasma</option>
+        </select>
+      </div>
+
+      <!-- Color Range -->
+      <div class="control-group">
+        <label class="control-label">Color Range: [<span id="colorLowValue">0.00</span>, <span id="colorHighValue">1.00</span>]</label>
+        <canvas id="gradientPreview" class="gradient-preview" width="300" height="30"></canvas>
+        <div class="slider-group">
+          <label class="slider-label">Low</label>
+          <input type="range" id="colorLowSlider" min="0" max="1" step="0.01" value="0">
+        </div>
+        <div class="slider-group">
+          <label class="slider-label">High</label>
+          <input type="range" id="colorHighSlider" min="0" max="1" step="0.01" value="1">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/metaballs-script.js"></script>
+</body>
+</html>
