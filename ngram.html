@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N-Gram Text Generator</title>
+  <link rel="stylesheet" href="css/ngram-style.css">
+</head>
+<body>
+
+  <header>
+    <a id="home-link" href="index.html">← Home</a>
+    <h1>N-Gram Text Generator</h1>
+    <p id="description">
+      An n-gram text generator (v1).
+    </p>
+  </header>
+
+  <div id="controls-row">
+    <div id="training-controls">
+      <h2>Training Controls</h2>
+      <div id="corpus-source">
+        <label><input type="radio" name="corpus-source" value="default" checked onchange="onCorpusSourceChange(this)"> Use default corpus (philosophy.txt)</label>
+        <a id="view-source-link" href="text/philosophy.txt" target="_blank">view philosophy.txt</a>
+        <br>
+        <label><input type="radio" name="corpus-source" value="upload" onchange="onCorpusSourceChange(this)"> Upload your own</label>
+        <input type="file" id="file-upload" accept=".txt" disabled onchange="onFileUpload(event)">
+      </div>
+      <div id="corpus-stats">
+        <p>Tokens: <span id="stat-tokens">—</span></p>
+        <p>Unique tokens: <span id="stat-unique">—</span></p>
+        <p>Build time: <span id="stat-buildtime">—</span></p>
+      </div>
+    </div>
+
+    <div id="generation-controls">
+      <h2>Generation Controls</h2>
+      <div id="control-n">
+        <label for="n-input">N (context size):</label>
+        <input type="number" id="n-input" min="1" max="6" value="3" onchange="onNChange()">
+        <small>Best: between 2-4.</small>
+      </div>
+      <div id="control-backoff">
+        <label for="backoff-toggle">Backoff:</label>
+        <input type="checkbox" id="backoff-toggle">
+        <small>If on, falls back to shorter context when current context is unseen. If off, restarts at a random context instead.</small>
+      </div>
+      <div id="control-seed">
+        <label for="seed-input">Random seed:</label>
+        <input type="number" id="seed-input" placeholder="leave empty for random">
+        <small>Set a seed for reproducible output.</small>
+      </div>
+      <div id="control-length">
+        <label for="length-input">Max output length (words):</label>
+        <input type="number" id="length-input" min="1" value="200">
+        <small>Autoplay stops when this many words have been generated.</small>
+      </div>
+    </div>
+  </div>
+
+  <div id="results-row">
+    <div id="panel-output">
+      <h2>Output</h2>
+      <div id="output-text"></div>
+      <div id="output-buttons">
+        <button id="btn-next" onclick="onNextWord()">Next Word</button>
+        <button id="btn-autoplay" onclick="onAutoplay()">Autoplay</button>
+        <button id="btn-reset" onclick="onReset()">Reset</button>
+      </div>
+    </div>
+
+    <div id="panel-analysis">
+      <h2>Next Word Analysis</h2>
+      <div id="analysis-context">
+        <span id="context-display">— ___</span>
+      </div>
+      <div id="analysis-candidates">
+        <div class="candidate">
+          <span class="candidate-word">word</span>
+          <div class="candidate-bar-wrap"><div class="candidate-bar" style="width:75%"></div></div>
+          <span class="candidate-prob">75.0%</span>
+        </div>
+        <div class="candidate">
+          <span class="candidate-word">word</span>
+          <div class="candidate-bar-wrap"><div class="candidate-bar" style="width:25%"></div></div>
+          <span class="candidate-prob">25.0%</span>
+        </div>
+      </div>
+      <p id="analysis-unseen-msg" hidden>No context found.</p>
+    </div>
+
+    <div id="panel-stats">
+      <h2>Stats</h2>
+      <div id="stats-corpus">
+        <h3>Corpus</h3>
+        <p>Tokens: <span id="stats-tokens">—</span></p>
+        <p>Unique tokens: <span id="stats-unique">—</span></p>
+        <p>Build time: <span id="stats-buildtime">—</span></p>
+      </div>
+      <div id="stats-ngram">
+        <h3>N-Gram Table</h3>
+        <p>Unique contexts: <span id="stats-contexts">—</span></p>
+        <p>Avg. continuations per context: <span id="stats-avgcont">—</span></p>
+      </div>
+      <div id="stats-topwords">
+        <h3>Top 10 Tokens</h3>
+        <ol id="stats-topwords-list">
+          <li>—</li><li>—</li><li>—</li><li>—</li><li>—</li>
+          <li>—</li><li>—</li><li>—</li><li>—</li><li>—</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/ngram-script.js"></script>
+</body>
+</html>
