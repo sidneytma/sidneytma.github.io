@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-gamut" content="srgb">
+<title>Afterimage Experiment</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #000;
+    font-family: 'Courier New', monospace;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: none;
+  }
+  canvas#arena {
+    display: block;
+  }
+  #hud-tl {
+    position: absolute;
+    top: 20px; left: 24px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: rgba(0,0,0,0.35);
+    line-height: 1.9;
+    text-transform: uppercase;
+  }
+  #hud-tr {
+    position: absolute;
+    top: 20px; right: 24px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: rgba(0,0,0,0.35);
+    line-height: 1.9;
+    text-transform: uppercase;
+    text-align: right;
+  }
+  #hud-br {
+    position: absolute;
+    bottom: 20px; right: 24px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: rgba(0,0,0,0.3);
+    text-transform: uppercase;
+    cursor: default;
+  }
+  #btn-download {
+    background: none;
+    border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.35);
+    cursor: pointer;
+  }
+  #btn-download:hover { background: rgba(0,0,0,0.05); }
+
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    pointer-events: none;
+  }
+  #overlay-msg {
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.4);
+    text-align: center;
+    line-height: 2;
+  }
+  #overlay-btns {
+    display: flex;
+    gap: 12px;
+    pointer-events: all;
+  }
+  .big-btn {
+    background: none;
+    border: 1px solid rgba(0,0,0,0.25);
+    border-radius: 5px;
+    padding: 9px 22px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.5);
+    cursor: pointer;
+  }
+  .big-btn:hover { background: rgba(0,0,0,0.06); }
+</style>
+</head>
+<body>
+
+<canvas id="arena"></canvas>
+
+<div id="hud-tl">
+  <div id="hud-iter">Iteration —</div>
+  <div id="hud-trial">Trial — / 12</div>
+</div>
+
+<div id="hud-tr">
+  <div id="hud-phase">—</div>
+  <div id="hud-countdown"></div>
+</div>
+
+<div id="hud-br">
+  <button id="btn-download">Download CSV</button>
+</div>
+
+<div id="overlay">
+  <div id="overlay-msg"></div>
+  <div id="overlay-btns"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG — edit these freely
+// ═══════════════════════════════════════════════════════
+const CFG = {
+  ADAPT_MS:       10000,   // adaptation phase duration
+  RECOVERY_MS:    10000,   // recovery phase duration
+  FRAME_MS:       120,     // chaser frame duration (ms per dot step)
+  N_DOTS:         12,      // dots in the chaser ring
+  DOT_RADIUS:     25,      // px
+  RING_RADIUS:    155,     // px, chaser ring
+  ANNULUS_THICK:  16,      // px, response annulus thickness
+  CHROMA:         39,      // CIELUV C* for all colors
+  L_STAR:         50,      // CIELUV L* for all colors
+  INDUCER_HUES:   Array.from({length:12}, (_,i) => i * 30), // degrees
+};
+// ═══════════════════════════════════════════════════════
+
+// ── Color math ────────────────────────────────────────
+const Xn=95.047,Yn=100,Zn=108.883;
+function luvToXyz(L,u,v){
+  if(L===0)return[0,0,0];
+  const u0=4*Xn/(Xn+15*Yn+3*Zn),v0=9*Yn/(Xn+15*Yn+3*Zn);
+  const Y=L>8?Yn*Math.pow((L+16)/116,3):Yn*L/903.3;
+  const a=(52*L/(u+13*L*u0)-1)/3,b=-5*Y,c_=-1/3;
+  const d=Y*(39*L/(v+13*L*v0)-5);
+  const X=(d-b)/(a-c_);
+  return[X,Y,X*a+b];
+}
+function gamma(c){return c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055;}
+function luvToHex(L,C,hdeg){
+  const h=hdeg*Math.PI/180;
+  const[X,Y,Z]=luvToXyz(L,C*Math.cos(h),C*Math.sin(h));
+  const r=(3.2406*X-1.5372*Y-0.4986*Z)/100;
+  const g=(-0.9689*X+1.8758*Y+0.0415*Z)/100;
+  const b=(0.0557*X-0.2040*Y+1.0570*Z)/100;
+  for(const v of [r,g,b]){
+    if(v < -0.001 || v > 1.001)
+      console.warn(`OOG at L*=${L}, C*=${C}, h=${hdeg}°: linear RGB (${r.toFixed(4)}, ${g.toFixed(4)}, ${b.toFixed(4)}) — stimulus will be clipped`);
+  }
+  const toB=v=>Math.round(Math.max(0,Math.min(1,gamma(v)))*255);
+  return`#${toB(r).toString(16).padStart(2,'0')}${toB(g).toString(16).padStart(2,'0')}${toB(b).toString(16).padStart(2,'0')}`;
+}
+const BG = luvToHex(CFG.L_STAR,0,0);
+// Background is painted by the canvas every frame (see loop()); body stays black.
+
+// ── Canvas ────────────────────────────────────────────
+const canvas = document.getElementById('arena');
+const ctx = canvas.getContext('2d', { colorSpace: 'srgb' });
+let CX, CY;
+
+function resize(){
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  CX = canvas.width  / 2;
+  CY = canvas.height / 2;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── State ─────────────────────────────────────────────
+const PHASES = {ADAPT:'adapt', RESPONSE:'response', RECOVERY:'recovery', BETWEEN:'between'};
+
+let phase       = PHASES.BETWEEN;
+let iteration   = 1;
+let trialInIter = 0;      // 0-based index within current iteration
+let trialOrder  = [];     // shuffled hue indices for this iteration
+let currentHue  = 0;      // inducer hue for current trial
+let responseHue = 180;    // controlled by mouse
+let hiddenIdx   = 0;
+let lastFrameT  = 0;
+let phaseStartT = 0;
+let results     = [];
+
+// mouse
+let mouseX = 0, mouseY = 0;
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  if(phase === PHASES.RESPONSE){
+    const dx = mouseX - CX, dy = mouseY - CY;
+    if(Math.sqrt(dx*dx+dy*dy) > 4)
+      responseHue = ((Math.atan2(dy,dx)*180/Math.PI)+360)%360;
+  }
+});
+
+// ── Shuffle ───────────────────────────────────────────
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startIteration(){
+  trialOrder = shuffle(CFG.INDUCER_HUES);
+  trialInIter = 0;
+  startTrial();
+}
+
+function startTrial(){
+  currentHue = trialOrder[trialInIter];
+  hiddenIdx  = 0;
+  const dx=mouseX-CX, dy=mouseY-CY;
+  if(Math.sqrt(dx*dx+dy*dy)>4)
+    responseHue=((Math.atan2(dy,dx)*180/Math.PI)+360)%360;
+  phase = PHASES.ADAPT;
+  phaseStartT = performance.now();
+  hideOverlay();
+}
+
+function startResponse(){
+  phase = PHASES.RESPONSE;
+  phaseStartT = performance.now();
+}
+
+function confirmResponse(){
+  if(phase !== PHASES.RESPONSE) return;
+  const rh = Math.round(responseHue * 10) / 10;
+  let delta = ((rh - currentHue) + 360) % 360;
+  if(delta > 180) delta -= 360;
+  results.push({
+    iteration,
+    trial: trialInIter + 1,
+    inducerHue: currentHue,
+    responseHue: rh,
+    deltaHue: Math.round(delta * 10) / 10
+  });
+  phase = PHASES.RECOVERY;
+  phaseStartT = performance.now();
+}
+
+function afterRecovery(){
+  trialInIter++;
+  if(trialInIter >= CFG.INDUCER_HUES.length){
+    // iteration done
+    showBetween();
+  } else {
+    startTrial();
+  }
+}
+
+function showBetween(){
+  phase = PHASES.BETWEEN;
+  showOverlay(
+    `Iteration ${iteration} complete`,
+    [{label:'Another iteration', fn: ()=>{ iteration++; startIteration(); }},
+     {label:'Download & stop',   fn: ()=>{ downloadCSV(); }}]
+  );
+}
+
+// ── Enter key ─────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter') confirmResponse();
+});
+
+// ── Draw ──────────────────────────────────────────────
+function dotPos(i){
+  const a = (2*Math.PI*i/CFG.N_DOTS) - Math.PI/2;
+  return [CX + CFG.RING_RADIUS*Math.cos(a), CY + CFG.RING_RADIUS*Math.sin(a)];
+}
+
+function drawChaser(showAnnulus){
+  const iHex = luvToHex(CFG.L_STAR, CFG.CHROMA, currentHue);
+  for(let i=0;i<CFG.N_DOTS;i++){
+    if(i===hiddenIdx) continue;
+    const[x,y]=dotPos(i);
+    ctx.beginPath();
+    ctx.arc(x,y,CFG.DOT_RADIUS,0,Math.PI*2);
+    ctx.fillStyle=iHex;
+    ctx.fill();
+  }
+  if(showAnnulus){
+    const[ax,ay]=dotPos(hiddenIdx);
+    const rHex=luvToHex(CFG.L_STAR,CFG.CHROMA,responseHue);
+    ctx.beginPath();
+    ctx.arc(ax,ay,CFG.DOT_RADIUS+CFG.ANNULUS_THICK,0,Math.PI*2,false);
+    ctx.arc(ax,ay,CFG.DOT_RADIUS,0,Math.PI*2,true);
+    ctx.fillStyle=rHex;
+    ctx.fill();
+  }
+}
+
+function drawCross(){
+  ctx.strokeStyle='rgba(0,0,0,0.45)';
+  ctx.lineWidth=1.5; ctx.lineCap='round';
+  [[CX-13,CY,CX+13,CY],[CX,CY-13,CX,CY+13]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  });
+}
+
+function drawCursor(){
+  // small crosshair cursor
+  const x=mouseX,y=mouseY;
+  ctx.strokeStyle='rgba(0,0,0,0.3)';
+  ctx.lineWidth=1; ctx.lineCap='round';
+  [[x-6,y,x+6,y],[x,y-6,x,y+6]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  });
+}
+
+// ── HUD ───────────────────────────────────────────────
+function updateHud(now){
+  document.getElementById('hud-iter').textContent  = `Iteration ${iteration}`;
+  document.getElementById('hud-trial').textContent = `Trial ${trialInIter+1} / ${CFG.INDUCER_HUES.length}`;
+
+  let phaseName='', countdown='';
+  if(phase===PHASES.ADAPT){
+    const rem = Math.ceil((CFG.ADAPT_MS-(now-phaseStartT))/1000);
+    phaseName='Adapt'; countdown=`${Math.max(0,rem)}s`;
+  } else if(phase===PHASES.RESPONSE){
+    phaseName='Respond'; countdown='↵ to confirm';
+  } else if(phase===PHASES.RECOVERY){
+    const rem = Math.ceil((CFG.RECOVERY_MS-(now-phaseStartT))/1000);
+    phaseName='Recovery'; countdown=`${Math.max(0,rem)}s`;
+  } else {
+    phaseName='—'; countdown='';
+  }
+  document.getElementById('hud-phase').textContent     = phaseName;
+  document.getElementById('hud-countdown').textContent = countdown;
+}
+
+// ── Main loop ─────────────────────────────────────────
+function loop(ts){
+  const now = ts;
+  ctx.fillStyle = BG;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  if(phase === PHASES.ADAPT || phase === PHASES.RESPONSE){
+    if(now - lastFrameT >= CFG.FRAME_MS){
+      hiddenIdx = (hiddenIdx+1) % CFG.N_DOTS;
+      lastFrameT = now;
+    }
+    drawChaser(phase === PHASES.RESPONSE);
+    drawCross();
+    if(phase === PHASES.RESPONSE) drawCursor();
+
+    if(phase===PHASES.ADAPT && now-phaseStartT >= CFG.ADAPT_MS)
+      startResponse();
+  }
+
+  if(phase === PHASES.RECOVERY){
+    drawCross();
+    if(now-phaseStartT >= CFG.RECOVERY_MS)
+      afterRecovery();
+  }
+
+  updateHud(now);
+  requestAnimationFrame(loop);
+}
+
+// ── Overlay helpers ───────────────────────────────────
+function showOverlay(msg, btns){
+  document.getElementById('overlay-msg').innerHTML = msg.replace('\n','<br>');
+  const bc = document.getElementById('overlay-btns');
+  bc.innerHTML='';
+  btns.forEach(b=>{
+    const el=document.createElement('button');
+    el.className='big-btn';
+    el.textContent=b.label;
+    el.onclick=b.fn;
+    bc.appendChild(el);
+  });
+}
+function hideOverlay(){
+  document.getElementById('overlay-msg').textContent='';
+  document.getElementById('overlay-btns').innerHTML='';
+}
+
+// ── CSV download ──────────────────────────────────────
+function downloadCSV(){
+  const header='iteration,trial,inducer_huv_deg,response_huv_deg,delta_hue_deg\n';
+  const rows=results.map(r=>`${r.iteration},${r.trial},${r.inducerHue},${r.responseHue},${r.deltaHue}`).join('\n');
+  const blob=new Blob([header+rows],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`afterimage_${Date.now()}.csv`;
+  a.click();
+}
+document.getElementById('btn-download').addEventListener('click', downloadCSV);
+
+// ── Boot ──────────────────────────────────────────────
+startIteration();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

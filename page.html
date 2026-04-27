@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Afterimages and Their True Colors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Illuminant E (equal-energy white) converted to sRGB.
+       XYZ = (1, 1, 1) → sRGB gamma-encoded ≈ (1.000, 0.973, 0.943) → #fff8f0 */
+    --bg: #fff8f0;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-fade: #8a8a8a;
+    --rule: #e0d9cd;
+    --accent: #8a3a2a;
+    --stage-white: #ffffff;
+    --stage-gray: #777777; /* CIELUV L*=50 neutral */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 19px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .article {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 80px 24px 120px;
+  }
+
+  /* ---- Header ---- */
+  header.masthead {
+    margin-bottom: 64px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+  h1 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 52px;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 18px;
+  }
+  .dek {
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    font-weight: 400;
+    font-style: italic;
+    max-width: 660px;
+  }
+
+  /* ---- Section headings ---- */
+  h2 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 32px;
+    letter-spacing: -0.005em;
+    margin: 64px 0 20px;
+    line-height: 1.15;
+  }
+  h3 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 40px 0 14px;
+    color: var(--ink);
+  }
+
+  /* ---- Body text ---- */
+  p {
+    margin-bottom: 18px;
+  }
+  p + p { text-indent: 0; }
+
+  ul, ol {
+    margin: 0 0 22px 24px;
+  }
+  li {
+    margin-bottom: 8px;
+  }
+
+  em { font-style: italic; }
+  strong { font-weight: 600; }
+
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  /* ---- Pull quote / callout ---- */
+  .question-block {
+    margin: 28px 0;
+    padding: 18px 24px;
+    border-left: 2px solid var(--accent);
+    background: rgba(138, 58, 42, 0.04);
+  }
+  .question-block ol {
+    margin: 0 0 0 18px;
+  }
+  .question-block li {
+    color: var(--ink-soft);
+  }
+
+  /* ---- Figure / visual stages ---- */
+  figure {
+    margin: 48px 0;
+  }
+
+  /* Shrink the visual itself but let the caption stay full-width */
+  figure > .stage,
+  figure > img.result-img {
+    width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* Smaller variant for square visuals (polar plots, trial widget) */
+  figure.figure--small > .stage,
+  figure.figure--small > img.result-img {
+    width: 55%;
+  }
+
+  .stage {
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+  }
+  .stage--white { background: var(--stage-white); }
+  .stage--gray  { background: var(--stage-gray); }
+
+  figure img.result-img {
+    display: block;
+    height: auto;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    background: var(--stage-white);
+  }
+
+  figcaption {
+    margin-top: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-fade);
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    padding: 0 4px;
+  }
+  figcaption strong {
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  figcaption .figlabel {
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-right: 8px;
+  }
+
+  /* ============================================
+     VISUAL 1 — Flag afterimage
+     ============================================ */
+  .flag-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+  .flag-stage .flag-area {
+    position: relative;
+    aspect-ratio: 19 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .flag-stage svg.flag {
+    width: 88%;
+    height: auto;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.1s linear;
+  }
+  .flag-stage .cross {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 22px; height: 22px;
+    margin: -11px 0 0 -11px;
+    pointer-events: none; z-index: 2;
+  }
+  .flag-stage .cross::before, .flag-stage .cross::after {
+    content: ""; position: absolute; background: #888;
+  }
+  .flag-stage .cross::before { left: 50%; top: 0; width: 2px; height: 100%; margin-left: -1px; }
+  .flag-stage .cross::after  { top: 50%; left: 0; height: 2px; width: 100%; margin-top: -1px; }
+  .flag-stage .label {
+    text-align: center;
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #999;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 0 14px;
+    border-top: 1px solid var(--rule);
+    background: #ffffff;
+    min-height: 18px;
+  }
+  /* ============================================
+     VISUAL 2 — Four chasers
+     ============================================ */
+  .chasers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    aspect-ratio: 1;
+  }
+  .chasers .panel {
+    position: relative;
+    background: var(--stage-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .chasers svg { width: 100%; height: 100%; display: block; }
+  .chasers .cross {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 14px; height: 14px;
+    margin: -7px 0 0 -7px;
+    pointer-events: none;
+  }
+  .chasers .cross::before, .chasers .cross::after {
+    content: ""; position: absolute; background: #333;
+  }
+  .chasers .cross::before { left: 50%; top: 0; width: 2px; height: 100%; margin-left: -1px; }
+  .chasers .cross::after  { top: 50%; left: 0; height: 2px; width: 100%; margin-top: -1px; }
+
+  /* ============================================
+     VISUAL 3 — Trial demo
+     ============================================ */
+  .trial-wrap {
+    /* lives inside a gray stage already */
+  }
+  .trial-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    cursor: none;
+    overflow: hidden;
+  }
+  .trial-stage canvas { display: block; width: 100%; height: 100%; }
+
+  .trial-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background: #ffffff;
+    border-top: 1px solid var(--rule);
+    flex-wrap: wrap;
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+  }
+  .trial-controls label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .trial-controls input[type="range"] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+  .trial-hue-out {
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    min-width: 40px;
+    text-align: right;
+  }
+  .trial-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.15);
+  }
+
+  /* ============================================
+     VISUAL 4 — Cone adaptation (von Kries) animation
+     VISUAL 5 — Opponent channel adaptation animation
+     Shared styles for both widgets
+     ============================================ */
+  .adapt-widget {
+    background: #ffffff;
+    padding: 14px 14px 12px;
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+  }
+  .adapt-svg-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: #fafaf6;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .adapt-svg-wrap svg { width: 100%; height: 100%; display: block; }
+
+  .adapt-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  .adapt-controls .status {
+    font-size: 11px;
+    color: var(--ink-soft);
+    flex: 1;
+    min-width: 160px;
+    line-height: 1.3;
+  }
+  .adapt-controls .status .phase {
+    font-weight: 600;
+    color: var(--ink);
+    display: block;
+  }
+  .adapt-controls .status .cycle {
+    color: var(--ink-fade);
+    font-size: 10px;
+  }
+  .adapt-controls button {
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    padding: 5px 10px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    color: var(--ink-soft);
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .adapt-controls button:hover { border-color: var(--accent); color: var(--accent); }
+  .adapt-controls button.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .adapt-controls button.primary:hover { background: #7a3024; color: #fff; }
+
+  /* Opponent-only: gain-knob row */
+  .gains-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid var(--rule);
+  }
+  .gain-knob {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gain-knob-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    min-width: 64px;
+  }
+  .gain-knob input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    min-width: 60px;
+  }
+  .gain-knob-value {
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    color: var(--ink);
+    min-width: 32px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .gain-reset {
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    padding: 4px 8px;
+    border: 1px solid var(--rule);
+    background: #fff;
+    color: var(--ink-fade);
+    border-radius: 3px;
+    cursor: pointer;
+    margin-top: 2px;
+    align-self: flex-end;
+  }
+  .gain-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+</style>
+</head>
+<body>
+
+<article class="article">
+
+  <header class="masthead">
+    <h1>Afterimages and Their True Colors</h1>
+<p><em>This is a personal implementation and extension on Christoph Witzel's work, <a href="https://www.nature.com/articles/s44271-025-00331-5"><em>The non-opponent nature of colour afterimages</em></a> (2025).</em></p>
+    <p>Afterimages are commonly understood to be color inversions caused by opponent channel adaptation, resulting in a red-green and blue-yellow inversion. This experiment measures these color relationships empirically, and the results challenge our longstanding assumptions about them.</p>
+  </header>
+
+ <!-- ===================== VISUAL 1: FLAG ===================== -->
+  <figure>
+    <div class="stage stage--white flag-stage" id="flag-stage">
+      <div class="flag-area">
+        <svg class="flag" id="flag" viewBox="0 0 1900 1000" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+          <rect width="1900" height="1000" fill="#000000"/>
+          <g fill="#00a000">
+            <rect y="0" width="1900" height="76.92"/>
+            <rect y="153.85" width="1900" height="76.92"/>
+            <rect y="307.69" width="1900" height="76.92"/>
+            <rect y="461.54" width="1900" height="76.92"/>
+            <rect y="615.38" width="1900" height="76.92"/>
+            <rect y="769.23" width="1900" height="76.92"/>
+            <rect y="923.08" width="1900" height="76.92"/>
+          </g>
+          <rect x="0" y="0" width="760" height="538.46" fill="#ffe600"/>
+          <g id="stars" fill="#000000"></g>
+        </svg>
+        <div class="cross"></div>
+      </div>
+      <div class="label" id="flag-label" aria-live="polite"></div>
+    </div>
+    <figcaption><span class="figlabel">Fig. 1</span><strong>US Flag Demonstration.</strong> The green-black-yellow flag will reveal a red-white-blue afterimage, resembling the familiar US flag. This demonstration is extremely popular, but the colors in the afterimage are not totally correct: the stripes are magenta (not red) and the canton is indigo (not blue).</figcaption>
+  </figure> 
+
+  <h2>Background</h2>
+
+  <p>An <a href="https://en.wikipedia.org/wiki/Afterimage"><strong>afterimage</strong></a> is the visual experience of an image that persists even after it disappears. These are often specified as <em>negative</em> afterimages because their colors appear to "invert" from those of the original image. Demonstrations typically use the <a href="https://en.wikipedia.org/wiki/Unique_hues">four psychological primary colors</a> (red, yellow, green, and blue) to model the standard opponent relationships: red images create green afterimages, blue images create yellow afterimages, and vice versa.</p>
+
+  <p>However, I have always noticed that these afterimage color pairs don't seem totally right. For instance, in the US flag afterimage above, the red stripes end up looking a bit pink and the blue rectangle looks more indigo than blue. These pairs are based on <a href="https://en.wikipedia.org/wiki/Opponent_process">Ewald Hering's opponent process theory</a> (red-green, blue-yellow), and are not entirely correct. So what are the correct color pairs we should expect to see in afterimages? Are there even any "pairs" at all?</p>
+
+  <!-- ===================== VISUAL 2: FOUR CHASERS ===================== -->
+  <figure>
+    <div class="stage stage--white">
+      <div class="chasers">
+        <div class="panel"><svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" data-color="#ff0000" preserveAspectRatio="xMidYMid meet"></svg><div class="cross"></div></div>
+        <div class="panel"><svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" data-color="#ffd800" preserveAspectRatio="xMidYMid meet"></svg><div class="cross"></div></div>
+        <div class="panel"><svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" data-color="#00c000" preserveAspectRatio="xMidYMid meet"></svg><div class="cross"></div></div>
+        <div class="panel"><svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" data-color="#0000ff" preserveAspectRatio="xMidYMid meet"></svg><div class="cross"></div></div>
+      </div>
+    </div>
+    <figcaption><span class="figlabel">Fig. 2</span><strong>Lilac Chasers.</strong> The rotating gap leaves a continuous afterimage in the empty position (a "chaser"). The afterimage colors do not perfectly resemble Hering's opponent pairs (red-green and blue-yellow).
+  </figure>
+
+  <p>Based on opponent process theory, two assumptions are commonly made about afterimages:</p>
+
+
+  <div class="question-block">
+  <ol>
+    <li>The afterimage pairs are red-green and blue-yellow.</li>
+    <li>Afterimages are <a href="https://en.wikipedia.org/wiki/Involution_(mathematics)"><em>involutions</em></a> (opposite, inverted, complementary, etc.), meaning that if Color A creates a Color B afterimage, then Color B should create a Color A afterimage.</li>
+  </ol>
+</div>
+
+  <p>The lilac chaser demonstration challenges both of these assumptions. Firstly, the expected red-green relationship is clearly wrong: red leaves a cyan afterimage, and green leaves a magenta one. Secondly, while blue does leave a yellow afterimage, yellow's afterimage is notably more indigo, suggesting that this relationship might not be one-to-one.</p>
+
+  <p>This prompts me to revisit some important questions about the nature of afterimages:</p>
+
+  <div class="question-block">
+    <ol>
+      <li>What exactly is the color-based relationship between images and their afterimages?</li>
+      <li>Do afterimages even involve an "inversion" at all?</li>
+      <li>What processes are responsible for the perceived colors in afterimages?</li>
+    </ol>
+  </div>
+
+  <p>Let's figure this out empirically.</p>
+
+  <h2>Experiment</h2>
+
+  <!-- ===================== VISUAL 3: TRIAL DEMO ===================== -->
+  <figure class="figure--small">
+    <div class="stage stage--gray">
+      <div class="trial-stage" id="trial-stage">
+        <canvas id="arena"></canvas>
+      </div>
+      <div class="trial-controls">
+        <label>
+          Inducer hue (H<sub>uv</sub>)
+          <input type="range" id="hue-slider" min="0" max="359" step="1" value="0">
+        </label>
+        <span class="trial-hue-out" id="hue-out">0°</span>
+        <span class="trial-swatch" id="hue-swatch"></span>
+      </div>
+    </div>
+    <figcaption><span class="figlabel">Fig. 3</span><strong>Afterimage Color Matching Trial.</strong> Drag the slider at the bottom to set the inducer hue. Move your mouse around the arena to set the response hue (the ring around the gap). The gap will start to take on an apparent color (the afterimage). When the ring's color matches the afterimage you perceive, the ring will appear flush with the chaser dot. </figcaption>
+  </figure>
+
+  <p>The difficulty in studying afterimage colors is that we can't take pictures of afterimages – they don't exist in the real world and can't be "measured" in any physical sense. Instead, we have to do color matching on the computer, where the user perceives an afterimage on the screen and selects a color to match it. </p>
+This raises two specific challenges:</p>
+
+  <ol>
+    <li><strong>Afterimages disappear very quickly.</strong> Not only do afterimages fade rapidly, but they also fade <em>immediately</em>, so the color is a moving target.</li>
+    <li><strong>It is hard to match colors exactly, especially quickly.</strong> Any intuitive color space requires three dimensions (RGB, HSV, etc.), and navigating color spaces is notoriously difficult.</li>
+  </ol>
+
+  <p>The experiment (demonstrated above) attempts to solve both of these challenges by:</p>
+
+  <ul>
+    <li><strong>Using a lilac chaser instead of disappearing images.</strong> This allows the afterimage to display continuously, giving the user an arbitrary amount of time to match the color. A small ring rotates around with the afterimage; if the selected color matches, the ring sits flush with the afterimage and just looks like one big dot.</li>
+    <li><strong>Controlling for some dimensions of a color space, and only varying the hue.</strong> Specifically, the color space is CIELUV (perceptually uniform), with luminance fixed at L*=50 and chroma fixed at C*=39. With a neutral gray background (also L*=50), the afterimage should appear at those same specs, so the user only has to control hue.</li>
+  </ul>
+
+<p><a href="https://www.nature.com/articles/s44271-025-00331-5"><em>Credit to Witzel, C. (2025) for his "chaser-like" paradigm which inspired this design.</em></a></p>
+
+  <p>The input variable space is 12 evenly spaced hues in <a href="https://en.wikipedia.org/wiki/CIELUV">CIELUV space</a> at the above specs: hue angles 0°, 30°, 60°, 90°, and so on. I'll use myself as a participant to run 20 trials for each color. After I get the empirically-determined afterimage hues for each input hue, I'll run the experiment again with <em>those</em> hues as inputs, which will help determine whether afterimages relationships are involutions, as discussed earlier.</p>
+
+  <h2>Results</h2>
+
+  <p>The experiment is relatively simple, but the results have some significant implications. I would draw two main conclusions based on the results:</p>
+
+  <div class="question-block">
+    <ol>
+      <li>Afterimage colors are <strong>not</strong> characterized by an inversion of colors.</li>
+      <li>Afterimage colors are explained primarily by <strong>cone-level adaptation</strong> and not opponent-channel adaptation.</li>
+    </ol>
+  </div>
+
+  <h3>On inversions (and involutions)</h3>
+
+  <figure class="figure--small">
+    <img class="result-img" src="figure_1_inversion.png" alt="Polar plot showing inducer hues and their mean response (afterimage) hues in CIELUV space.">
+    <figcaption><span class="figlabel">Fig. 4</span><strong>Inducer Hue vs. Response Hue.</strong> Each large dot is one of the 12 inducer hues; the smaller dot connected to it shows the mean response hue selected across trials. If afterimages were perfect inversions, every arrow would land exactly 180° opposite its inducer. </figcaption>
+  </figure>
+
+  <p>If afterimages are inversions, then we would expect selected hues to approximate 180° rotations from their inducer hues in a perceptual color space. However, the selected hues deviate from this ideal by 11° on average, with maximum deviations of <strong>+33° at hue 30°</strong> (orange inducers, where the afterimage rotates farther than 180°) and <strong>−16° at hue 150°</strong> (green inducers, where it rotates less). For comparison, the within-condition trial-to-trial noise was about 7°, so this bias is meaningfully larger than what random variability could produce. About 77% of the variance in deviation-from-180° is explained by the inducer hue variable, and this bias seems to be systematic: warm hues generally induce a hue rotation greater than 180°, while cool hues induce a rotation less than 180°.</p>
+
+  <figure class="figure--small">
+    <img class="result-img" src="figure_2_involution.png" alt="Polar plot showing the round-trip from original inducer hue to afterimage hue to second-pass response hue.">
+    <figcaption><span class="figlabel">Fig. 5</span><strong>Round-trip Afterimage Hues.</strong> Original inducer hues (largest dots), their afterimage responses (medium dots), and the responses produced when those afterimage hues were re-used as inducers (smallest dots). For a true involution, the smallest dots would land back on top of the original largest dots.</figcaption>
+  </figure>
+
+  <p>To test for involutions, I re-ran the experiment with the selected afterimage hues as input hues. If afterimages are to be characterized as involutions, then we would expect these input hues to induce afterimages that match the original 12 hues. However, the selected afterimage hues from this experiment are on average 15° off from their original position, about twice the noise floor. Like before, this deviation cannot be explained by noise, and importantly, the same bias (warm hues overshoot, cool hues undershoot) was present here as well.</p>
+
+  <p>Ultimately, the data suggest that afterimages involve some process more complex than a simple inversion, and this process certainly cannot be characterized as a reversible involution of hue.</p>
+
+  <h3>On cone adaptation vs. opponent channel adaptation</h3>
+
+  <p>Both the cones and opponent channels are responsible for color processing, and both are involved in the experience of afterimages. It is not a question of <em>which</em> layer can explain afterimage hues, but which layer can explain them <em>better</em>. To test this, we will compare the experiment results to the predictions of two models: a <a href="https://en.wikipedia.org/wiki/Chromatic_adaptation#:~:text=The%20von%20Kries%20chromatic%20adaptation,of%20the%20reference%20white%20constant."><strong>von Kries cone adaptation model</strong></a>, and an <strong>opponent channel adaptation model</strong>. These models simulate gain reduction to their input signals at their respective layers (cones and opponent channels). For the von Kries model, this means adjusting the L, M, and S cones; for the opponent channel model, this means adjusting the red-green and blue-yellow channels. The response of these gain-adjusted cells to neutral-colored light can be simulated to predict the perceived color of afterimages.</p>
+
+  <!-- ===================== VISUAL 4: CONE ADAPTATION ===================== -->
+  <figure class="figure--small">
+    <div class="stage stage--white">
+      <div class="adapt-widget" id="cone-widget">
+        <div class="adapt-svg-wrap">
+          <svg id="cone-scene" viewBox="0 0 1000 625" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div class="adapt-controls">
+          <div class="status">
+            <span class="phase" id="cone-phase">Loading…</span>
+            <span class="cycle" id="cone-cycle"></span>
+          </div>
+          <button id="cone-play" class="primary">Pause</button>
+          <button id="cone-restart">Restart</button>
+        </div>
+      </div>
+    </div>
+    <figcaption><span class="figlabel">Fig. 6</span><strong>Simplified cone adaptation (von Kries).</strong> Each cone curve shrinks in proportion to how much it was excited by the inducer. When the screen returns to gray, the imbalance among the cones is what the brain reads out as the afterimage.</figcaption>
+  </figure>
+
+  <!-- ===================== VISUAL 5: OPPONENT ADAPTATION ===================== -->
+  <figure class="figure--small">
+    <div class="stage stage--white">
+      <div class="adapt-widget" id="opp-widget">
+        <div class="adapt-svg-wrap">
+          <svg id="opp-scene" viewBox="0 0 1000 625" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div class="gains-row">
+          <div class="gain-knob">
+            <span class="gain-knob-label" style="color:#a8362a;">R−G gain</span>
+            <input type="range" id="gain-rg" min="0" max="3" step="0.01" value="0.82">
+            <span class="gain-knob-value" id="gain-rg-val">0.82</span>
+          </div>
+          <div class="gain-knob">
+            <span class="gain-knob-label" style="color:#3a5fa8;">B−Y gain</span>
+            <input type="range" id="gain-by" min="0" max="3" step="0.01" value="1.20">
+            <span class="gain-knob-value" id="gain-by-val">1.20</span>
+          </div>
+          <button class="gain-reset" id="reset-gains">Reset to fitted (0.82, 1.20)</button>
+        </div>
+        <div class="adapt-controls">
+          <div class="status">
+            <span class="phase" id="opp-phase">Loading…</span>
+            <span class="cycle" id="opp-cycle"></span>
+          </div>
+          <button id="opp-play" class="primary">Pause</button>
+          <button id="opp-restart">Restart</button>
+        </div>
+      </div>
+    </div>
+    <figcaption><span class="figlabel">Fig. 7</span><strong>Simplified opponent channel adaptation.</strong> Each channel signal swings up or down from gray as the inducer arrives, then habituates toward zero (chromatic adaptation). When the inducer disappears, the gain-reduced channels rebound in the opposite direction, creating the perception of an afterimage. Drag the gain knobs to see how the model's free parameters change the prediction.</figcaption>
+  </figure>
+
+  <p>Importantly, for this test, I will allow the opponent channel model to fit to the data with two free gain parameters. This is partially based on the physiology that opponent channels adapt to signals differently, and also because without this, the opponent channel model would simply predict a 180° hue flip in CIELUV space, which would give us no new data. It does mean, however, that the opponent channel model has a significant advantage in that it can fit to the data, whereas the von Kries model is naive (no parameters fit). Because of this, the results achieved from this fitted opponent channel model will overestimate its effectiveness in explaining afterimage hues.</p>
+
+  <p>Even with its disadvantage, the von Kries cone adaptation model wins. With no free parameters, it produces a mean absolute residual of <strong>8.32°</strong>, compared to the fitted opponent channel model's <strong>10.21°</strong> (a 1.91° advantage) despite the opponent model being able to fit the data. From this result alone, we could assume that afterimage hue is better explained by cone adaptation.</p>
+
+  <figure>
+    <img class="result-img" src="figure_3_models.png" alt="Top: residuals (predicted minus observed hue) at each inducer hue for the fitted Opponent, von Kries, and Two-stage models. Bottom: mean absolute residual across all trials per model.">
+    <figcaption><span class="figlabel">Fig. 8</span><strong>Model Residuals.</strong> The upper plot displays the model residuals (predicted hue angle - observed hue angle) for a von Kries cone adaptation model, an opponent channel adaptation model (also based on gain reduction), and a two-stage model which combines these models serially. Von Kries adaptation outperforms opponent channel adaptation as a predictor for afterimage hue, and a two-stage model, which outperforms both, suggests that 2/3 of the variance is explained by the von Kries model. The darkened band in upper plot and the dotted line in the bar chart both represent a ±7° hue range, which is the noise floor.
+  </figure>
+
+  <p>To further investigate this, we can use both models to create a two-stage model, where adaptation is modeled at both the cone layer and opponent channel layer to predict the afterimage hue. In theory, this should be a more realistic model of afterimage color perception, and could provide insight as to how much each stage of adaptation contributes to the effect.</p>
+
+  <p>This two-stage model leads to a mean absolute residual of <strong>6.33°</strong>, a significant improvement from either standalone model, and notably close to the 7° noise floor of the experiment itself, suggesting it approaches the limit of what these data can resolve. What appears to happen is that cone adaptation gets the direction of the afterimage roughly right, but the cone prediction is too extreme along the red-green axis and not extreme enough along the yellow-blue axis. Opponent channel adaptation then refines the prediction by compressing red-green (gain ≈ 0.82) and stretching blue-yellow (gain ≈ 1.20). As a whole, the two-stage model suggests that cone adaptation explains about ⅔ of the variance whereas opponent channel adaptation explains about ⅓. So while these results do suggest that both layers play significant roles in determining afterimage hue, it does indicate that <strong>cone adaptation accounts for this effect twice as much as opponent channel adaptation</strong>.</p>
+
+  <h2>Discussion & Recap</h2>
+
+  <p>Regarding the original questions, what do these results suggest about afterimages?</p>
+
+  <p><strong>What exactly is the color-based relationship between images and their afterimages? Do afterimages even involve an inversion at all?</strong> Afterimage hues are approximated by inversions in perceptual color spaces, but they are fundamentally not inversions nor involutions, nor do they appear to follow any clean algorithmic relationship between hues. They instead are best predicted by gain reduction of signals in the cones and opponent channels, and even then are only approximations subject to error.</p>
+
+  <p><strong>What processes are responsible for the perceived colors in afterimages?</strong> The results from this experiment suggest that afterimage hues are the result of adaptation in both cones and opponent channels, and likely further downstream processes as well. However, cone adaptation appears to account for about ⅔ of the effect, twice as much as opponent channel adaptation.</p>
+
+  <p>There are certainly some limitations to mention, including but not limited to:</p>
+
+  <ul>
+    <li>Only one participant (myself). Unique hues and adaptation gains are known to vary by 5-10° between individuals, which is comparable to some of the residuals I found. The specific quantitative results might shift in a multi-subject study.</li>
+    <li>Imperfect variables (my eyes, my monitor display, my ambient lighting, etc.).</li>
+    <li>Not too many trials (only 20 per hue, 5 per hue for second part).</li>
+    <li>Very hard to guarantee that afterimages be L*=50 and C*=39, making it hard to match hue.</li>
+    <li>Scope is limited to L*=50 and C*=39, a very small subset of CIELUV color space.</li>
+  </ul>
+
+  <p>All of these limitations should be resolved in a proper experiment, but the results would still have been very unlikely if not for the explained effects. The scope could certainly be increased to include the effects of other colors and background luminances, but these settings are sufficient to provide interesting enough results for now.</p>
+
+  <figure>
+    <img class="result-img" src="pearson.png" alt="Scan from a Pearson textbook showing a green-black-yellow flag afterimage demonstration with a caption claiming it provides evidence for opponent-process theory.">
+    <figcaption><span class="figlabel">Fig. 9</span><strong>From a Pearson psychology textbook (2016).</strong> The highlighted section claims that the colors in afterimages are the "opposite" primary colors of the original and that it provides evidence for oppoonent process theory; these claims are both at odds with this experiment's results.
+  </figure>
+
+  <p>These results contrast with the way afterimages are taught, demonstrated, and described, at least in my experience. I learned about afterimages several times in school from third grade all the way through college, and several themes would come up that seem incongruent with the findings of this experiment:</p>
+
+  <div class="question-block">
+    <ul>
+      <li>Afterimage hues exemplify the red-green and blue-yellow opponent pairs <em>(demonstrably not true)</em>.</li>
+      <li>Afterimages invert inducer colors, revealing "opponent" or complementary colors <em>(approximately true in perceptual color spaces, but not corroborated by any algorithmic process)</em>.</li>
+      <li>Afterimages occur due to opponent channel adaptation <em>(true, but it's mostly explained by cone adaptation)</em>.</li>
+      <li>Afterimages are evidence/motivation for opponent process theory <em>(not really; Hering's original arguments rested on color appearance phenomena, not on afterimages. The findings from this experiment further emphasize that afterimages do not provide evidence for opponent process theory.)</em></li>
+    </ul>
+  </div>
+
+  <p>All in all, I feel that the popular understanding of afterimages is rather misleading. Even though the scientific community has <a href="https://en.wikipedia.org/wiki/Opponent_process#Criticism_and_the_complementary_color_cells">challenged opponent process theory over the years</a> and currently points to cone adaptation as the primary explanation for afterimages, opponent channel explanations are still widespread. I myself was surprised by the experiment results after having heard these explanations so many times.</p>
+
+  <p>In any case, while there is a long way to go before we fully decode human vision, it is exciting to see how even a simple experiment like this can challenge some of our longstanding assumptions about color! </p>
+
+<h3>Supplementary materials and notes</h3>
+
+<p>Link to experiment: <a href="experiment.html">[experiment.html]</a></p>
+  <p>Link to my experiment results data: <a href="data.csv" download>[data.csv]</a></p>
+<p>Link to code for analysis: <a href="stats.py" download>[stats.py]</a></p>
+
+</article>
+
+<script>
+/* ============================================================
+   VISUAL 1 — Flag afterimage
+   ============================================================ */
+(function(){
+  const svgNS = "http://www.w3.org/2000/svg";
+  const starsLayer = document.getElementById('stars');
+  if (!starsLayer) return;
+
+  function starPath(cx, cy, R) {
+    const r = R * 0.382;
+    let d = "";
+    for (let i = 0; i < 10; i++) {
+      const angle = -Math.PI / 2 + i * Math.PI / 5;
+      const rad = (i % 2 === 0) ? R : r;
+      const x = cx + Math.cos(angle) * rad;
+      const y = cy + Math.sin(angle) * rad;
+      d += (i === 0 ? "M" : "L") + x.toFixed(2) + "," + y.toFixed(2) + " ";
+    }
+    return d + "Z";
+  }
+
+  const rows = [
+    {y: 53.85,  count: 6, x0: 63.33},
+    {y: 107.69, count: 5, x0: 126.67},
+    {y: 161.54, count: 6, x0: 63.33},
+    {y: 215.38, count: 5, x0: 126.67},
+    {y: 269.23, count: 6, x0: 63.33},
+    {y: 323.08, count: 5, x0: 126.67},
+    {y: 376.92, count: 6, x0: 63.33},
+    {y: 430.77, count: 5, x0: 126.67},
+    {y: 484.62, count: 6, x0: 63.33}
+  ];
+  const spacing = 126.67;
+  const R = 25;
+
+  rows.forEach(row => {
+    for (let i = 0; i < row.count; i++) {
+      const cx = row.x0 + i * spacing;
+      const p = document.createElementNS(svgNS, "path");
+      p.setAttribute("d", starPath(cx, row.y, R));
+      starsLayer.appendChild(p);
+    }
+  });
+
+  const flag = document.getElementById('flag');
+  const label = document.getElementById('flag-label');
+
+  function runCycle() {
+    flag.style.opacity = '1';
+    let remaining = 5;
+    label.textContent = remaining;
+    const tick = setInterval(() => {
+      remaining -= 1;
+      if (remaining > 0) {
+        label.textContent = remaining;
+      } else {
+        clearInterval(tick);
+        flag.style.opacity = '0';
+        label.textContent = 'afterimage';
+        setTimeout(runCycle, 1000);
+      }
+    }, 1000);
+  }
+  runCycle();
+})();
+
+/* ============================================================
+   VISUAL 2 — Four chasers
+   ============================================================ */
+(function(){
+  const svgNS = "http://www.w3.org/2000/svg";
+  const cx = 200, cy = 200, radius = 150, dotR = 28;
+  const N = 12;
+
+  const svgs = document.querySelectorAll('.chasers svg[data-color]');
+  if (!svgs.length) return;
+
+  const state = [];
+  svgs.forEach(svg => {
+    const color = svg.dataset.color;
+    const dots = [];
+    for (let i = 0; i < N; i++) {
+      const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+      const x = cx + Math.cos(angle) * radius;
+      const y = cy + Math.sin(angle) * radius;
+      const c = document.createElementNS(svgNS, "circle");
+      c.setAttribute("cx", x);
+      c.setAttribute("cy", y);
+      c.setAttribute("r", dotR);
+      c.setAttribute("fill", color);
+      svg.appendChild(c);
+      dots.push(c);
+    }
+    state.push({ dots, gapIndex: 0 });
+  });
+
+  function render() {
+    state.forEach(s => {
+      s.dots.forEach((d, i) => {
+        d.style.visibility = (i === s.gapIndex) ? 'hidden' : 'visible';
+      });
+    });
+  }
+  render();
+
+  setInterval(() => {
+    state.forEach(s => {
+      s.gapIndex = (s.gapIndex + 1) % N;
+    });
+    render();
+  }, 100);
+})();
+
+/* ============================================================
+   VISUAL 3 — Trial demo
+   ============================================================ */
+(function(){
+  const CFG = {
+    FRAME_MS:      120,
+    N_DOTS:        12,
+    /* These are ratios relative to the smaller canvas dimension.
+       At a 720px canvas, this gives roughly DOT=30, RING=165, ANNULUS=18 */
+    DOT_RADIUS_R:    0.0417,
+    RING_RADIUS_R:   0.2292,
+    ANNULUS_THICK_R: 0.0250,
+    CROSS_HALF_R:    0.0153,
+    CURSOR_HALF_R:   0.0083,
+    CHROMA:        39,
+    L_STAR:        50,
+  };
+
+  const Xn=95.047,Yn=100,Zn=108.883;
+  function luvToXyz(L,u,v){
+    if(L===0)return[0,0,0];
+    const u0=4*Xn/(Xn+15*Yn+3*Zn),v0=9*Yn/(Xn+15*Yn+3*Zn);
+    const Y=L>8?Yn*Math.pow((L+16)/116,3):Yn*L/903.3;
+    const a=(52*L/(u+13*L*u0)-1)/3,b=-5*Y,c_=-1/3;
+    const d=Y*(39*L/(v+13*L*v0)-5);
+    const X=(d-b)/(a-c_);
+    return[X,Y,X*a+b];
+  }
+  function gamma(c){return c<=0.0031308?12.92*c:1.055*Math.pow(c,1/2.4)-0.055;}
+  function luvToHex(L,C,hdeg){
+    const h=hdeg*Math.PI/180;
+    const[X,Y,Z]=luvToXyz(L,C*Math.cos(h),C*Math.sin(h));
+    const r=(3.2406*X-1.5372*Y-0.4986*Z)/100;
+    const g=(-0.9689*X+1.8758*Y+0.0415*Z)/100;
+    const b=(0.0557*X-0.2040*Y+1.0570*Z)/100;
+    const toB=v=>Math.round(Math.max(0,Math.min(1,gamma(v)))*255);
+    return`#${toB(r).toString(16).padStart(2,'0')}${toB(g).toString(16).padStart(2,'0')}${toB(b).toString(16).padStart(2,'0')}`;
+  }
+
+  const canvas = document.getElementById('arena');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const stage = document.getElementById('trial-stage');
+  const BG = luvToHex(CFG.L_STAR,0,0);
+  // The stage's parent .stage--gray already provides the gray; we paint canvas to match.
+
+  let CX, CY, W, H;
+  let DOT_RADIUS, RING_RADIUS, ANNULUS_THICK, CROSS_HALF, CURSOR_HALF;
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    W = rect.width; H = rect.height;
+    CX = W/2; CY = H/2;
+    const S = Math.min(W, H);
+    DOT_RADIUS    = S * CFG.DOT_RADIUS_R;
+    RING_RADIUS   = S * CFG.RING_RADIUS_R;
+    ANNULUS_THICK = S * CFG.ANNULUS_THICK_R;
+    CROSS_HALF    = S * CFG.CROSS_HALF_R;
+    CURSOR_HALF   = S * CFG.CURSOR_HALF_R;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  new ResizeObserver(resize).observe(canvas);
+
+  const hueSlider = document.getElementById('hue-slider');
+  const hueOut    = document.getElementById('hue-out');
+  const hueSwatch = document.getElementById('hue-swatch');
+  let inducerHue = 0;
+  function updateInducer(){
+    inducerHue = parseInt(hueSlider.value, 10);
+    hueOut.textContent = inducerHue + '°';
+    hueSwatch.style.background = luvToHex(CFG.L_STAR, CFG.CHROMA, inducerHue);
+  }
+  hueSlider.addEventListener('input', updateInducer);
+  updateInducer();
+
+  let mouseX = 0, mouseY = 0, mouseInside = false;
+  let responseHue = 180;
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+    mouseInside = true;
+    const dx = mouseX - CX, dy = mouseY - CY;
+    if(Math.sqrt(dx*dx+dy*dy) > 4){
+      responseHue = ((Math.atan2(dy,dx)*180/Math.PI)+360)%360;
+    }
+  });
+  canvas.addEventListener('mouseleave', () => { mouseInside = false; });
+
+  let lastFrameT = 0;
+  let hiddenIdx = 0;
+
+  function dotPos(i){
+    const a = (2*Math.PI*i/CFG.N_DOTS) - Math.PI/2;
+    return [CX + RING_RADIUS*Math.cos(a), CY + RING_RADIUS*Math.sin(a)];
+  }
+
+  function drawChaser(){
+    const iHex = luvToHex(CFG.L_STAR, CFG.CHROMA, inducerHue);
+    for(let i=0;i<CFG.N_DOTS;i++){
+      if(i===hiddenIdx) continue;
+      const[x,y]=dotPos(i);
+      ctx.beginPath();
+      ctx.arc(x,y,DOT_RADIUS,0,Math.PI*2);
+      ctx.fillStyle=iHex;
+      ctx.fill();
+    }
+    const[ax,ay]=dotPos(hiddenIdx);
+    const rHex=luvToHex(CFG.L_STAR,CFG.CHROMA,responseHue);
+    ctx.beginPath();
+    ctx.arc(ax,ay,DOT_RADIUS+ANNULUS_THICK,0,Math.PI*2,false);
+    ctx.arc(ax,ay,DOT_RADIUS,0,Math.PI*2,true);
+    ctx.fillStyle=rHex;
+    ctx.fill();
+  }
+
+  function drawCross(){
+    ctx.strokeStyle='rgba(0,0,0,0.45)';
+    ctx.lineWidth=1.5; ctx.lineCap='round';
+    [[CX-CROSS_HALF,CY,CX+CROSS_HALF,CY],[CX,CY-CROSS_HALF,CX,CY+CROSS_HALF]].forEach(([x1,y1,x2,y2])=>{
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    });
+  }
+
+  function drawCursor(){
+    if(!mouseInside) return;
+    ctx.strokeStyle='rgba(0,0,0,0.35)';
+    ctx.lineWidth=1; ctx.lineCap='round';
+    [[mouseX-CURSOR_HALF,mouseY,mouseX+CURSOR_HALF,mouseY],[mouseX,mouseY-CURSOR_HALF,mouseX,mouseY+CURSOR_HALF]].forEach(([x1,y1,x2,y2])=>{
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    });
+  }
+
+  function loop(ts){
+    ctx.fillStyle = BG;
+    ctx.fillRect(0,0,W,H);
+
+    if(ts - lastFrameT >= CFG.FRAME_MS){
+      hiddenIdx = (hiddenIdx + 1) % CFG.N_DOTS;
+      lastFrameT = ts;
+    }
+    drawChaser();
+    drawCross();
+    drawCursor();
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+/* ============================================================
+   SHARED COLOR-SPACE MATH for VISUAL 4 (cone) and VISUAL 5 (opponent)
+   ============================================================ */
+const ADAPT = (function(){
+  const Xn=95.047, Yn=100, Zn=108.883;
+  const u0 = 4*Xn / (Xn + 15*Yn + 3*Zn);
+  const v0 = 9*Yn / (Xn + 15*Yn + 3*Zn);
+  const L_STAR = 50;
+  const CHROMA = 39;
+
+  function luvToXyz(L, u, v) {
+    if (L === 0) return [0,0,0];
+    const Y = L > 8 ? Yn*Math.pow((L+16)/116, 3) : Yn*L/903.3;
+    const a = (52*L/(u + 13*L*u0) - 1) / 3;
+    const b = -5*Y, c = -1/3;
+    const d = Y*(39*L/(v + 13*L*v0) - 5);
+    const X = (d - b) / (a - c);
+    return [X, Y, X*a + b];
+  }
+  function xyzToLuv(X, Y, Z) {
+    if (Y <= 0) return [0,0,0];
+    const denom = X + 15*Y + 3*Z;
+    const up = denom === 0 ? 0 : 4*X/denom;
+    const vp = denom === 0 ? 0 : 9*Y/denom;
+    const yr = Y/Yn;
+    const L = yr > Math.pow(6/29, 3) ? 116*Math.pow(yr, 1/3) - 16 : 903.3*yr;
+    return [L, 13*L*(up - u0), 13*L*(vp - v0)];
+  }
+  function xyzToLms(X,Y,Z) {
+    return [
+       0.38971*X + 0.68898*Y - 0.07868*Z,
+      -0.22981*X + 1.18340*Y + 0.04641*Z,
+       0.00000*X + 0.00000*Y + 1.00000*Z
+    ];
+  }
+  function lmsToXyz(L,M,S) {
+    return [
+       1.91019683*L - 1.11212389*M + 0.20193296*S,
+       0.37095009*L + 0.62905426*M - 0.00000806*S,
+       0.00000000*L + 0.00000000*M + 1.00000000*S
+    ];
+  }
+  function gamma(c) { return c <= 0.0031308 ? 12.92*c : 1.055*Math.pow(c,1/2.4) - 0.055; }
+  function xyzToHex(X,Y,Z) {
+    const r = ( 3.2406*X - 1.5372*Y - 0.4986*Z) / 100;
+    const g = (-0.9689*X + 1.8758*Y + 0.0415*Z) / 100;
+    const b = ( 0.0557*X - 0.2040*Y + 1.0570*Z) / 100;
+    const toB = v => Math.round(Math.max(0,Math.min(1, gamma(v)))*255);
+    return `#${toB(r).toString(16).padStart(2,'0')}${toB(g).toString(16).padStart(2,'0')}${toB(b).toString(16).padStart(2,'0')}`;
+  }
+  function hueToXyz(hueDeg) {
+    const h = hueDeg * Math.PI / 180;
+    return luvToXyz(L_STAR, CHROMA*Math.cos(h), CHROMA*Math.sin(h));
+  }
+
+  const grayXYZ = luvToXyz(L_STAR, 0, 0);
+  const grayHex = xyzToHex(...grayXYZ);
+  const grayLMS = xyzToLms(...grayXYZ);
+  const grayLum = grayLMS[0] + grayLMS[1] + grayLMS[2];
+
+  const COLORS = [
+    { name: "Red",    hue: 12  },
+    { name: "Yellow", hue: 86  },
+    { name: "Green",  hue: 130 },
+    { name: "Blue",   hue: 256 }
+  ];
+  const PHASES = {
+    IDLE:    { dur: 800 },
+    ONSET:   { dur: 4000 },
+    OFFSET:  { dur: 5000 }
+  };
+  const PHASE_ORDER = ['IDLE', 'ONSET', 'OFFSET'];
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs={}) {
+    const e = document.createElementNS(SVG_NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function txt(parent, x, y, s, attrs={}) {
+    const t = el("text", Object.assign({
+      x, y,
+      "font-family": "Inter, sans-serif",
+      "font-size": 18,
+      fill: "#666"
+    }, attrs));
+    t.textContent = s;
+    parent.appendChild(t);
+    return t;
+  }
+
+  return {
+    L_STAR, CHROMA,
+    luvToXyz, xyzToLuv, xyzToLms, lmsToXyz,
+    xyzToHex, hueToXyz,
+    grayXYZ, grayHex, grayLMS, grayLum,
+    COLORS, PHASES, PHASE_ORDER,
+    el, txt, SVG_NS
+  };
+})();
+
+/* ============================================================
+   VISUAL 4 — Cone adaptation (von Kries) animation
+   ============================================================ */
+(function(){
+  const sceneEl = document.getElementById('cone-scene');
+  if (!sceneEl) return;
+
+  const { xyzToLms, lmsToXyz, xyzToLuv, xyzToHex, hueToXyz,
+          grayLMS, grayHex, COLORS, PHASES, PHASE_ORDER, el, txt } = ADAPT;
+
+  /* Spectral sensitivity curves (Gaussian approximations of Stockman & Sharpe) */
+  const WAVELENGTHS = [];
+  for (let w = 390; w <= 730; w += 5) WAVELENGTHS.push(w);
+  function asymGauss(w, peak, ss, sl) {
+    const s = w < peak ? ss : sl;
+    return Math.exp(-((w-peak)*(w-peak))/(2*s*s));
+  }
+  const L_CURVE = WAVELENGTHS.map(w => asymGauss(w, 565, 35, 60));
+  const M_CURVE = WAVELENGTHS.map(w => asymGauss(w, 540, 35, 50));
+  const S_CURVE = WAVELENGTHS.map(w => asymGauss(w, 445, 25, 35));
+  const CONE_NAMES = ["L", "M", "S"];
+  const CONE_COLORS = ["#d24a3d", "#4ea34c", "#4a6cb8"];
+  const CONE_CURVES = [L_CURVE, M_CURVE, S_CURVE];
+
+  const MAX_ALPHA = 0.85;
+  const minW = 390, maxW = 730;
+
+  /* SVG layout (viewBox 1000x625) */
+  const CURVES_BOX = { x: 60, y: 80, w: 540, h: 410 };
+  const Y_MAX = 1.0;
+  const Y_SCALE = (CURVES_BOX.h - 30) / Y_MAX;
+  const PATCH_W = 260, PATCH_H = 160;
+  const SCREEN_PATCH = { x: 670, y: 90,  w: PATCH_W, h: PATCH_H };
+  const PERCEPT_PATCH = { x: 670, y: 320, w: PATCH_W, h: PATCH_H };
+
+  let state = {
+    colorIdx: 0, phaseIdx: 0, phaseStart: 0,
+    paused: false, alpha: [0, 0, 0]
+  };
+
+  function getColorState() {
+    const c = COLORS[state.colorIdx];
+    const colXYZ = hueToXyz(c.hue);
+    const colLMS = xyzToLms(...colXYZ);
+    const fullGains = [
+      grayLMS[0]/colLMS[0],
+      grayLMS[1]/colLMS[1],
+      grayLMS[2]/colLMS[2]
+    ];
+    return { color: c, hex: xyzToHex(...colXYZ), colLMS, fullGains };
+  }
+  function updateAlpha(phaseName, dt) {
+    const target = (phaseName === 'ONSET') ? MAX_ALPHA : 0;
+    const tau = (phaseName === 'ONSET') ? 1.6 : 2.6;
+    for (let i = 0; i < 3; i++) {
+      const k = 1 - Math.exp(-dt / tau);
+      state.alpha[i] += (target - state.alpha[i]) * k;
+    }
+  }
+  function currentGains() {
+    const cs = getColorState();
+    const raw = [
+      1 + state.alpha[0]*(cs.fullGains[0] - 1),
+      1 + state.alpha[1]*(cs.fullGains[1] - 1),
+      1 + state.alpha[2]*(cs.fullGains[2] - 1)
+    ];
+    const maxG = Math.max(raw[0], raw[1], raw[2]);
+    return [raw[0]/maxG, raw[1]/maxG, raw[2]/maxG];
+  }
+  function perceptHex(screenLMS) {
+    const gains = currentGains();
+    const adaptedLMS = [
+      screenLMS[0] * gains[0],
+      screenLMS[1] * gains[1],
+      screenLMS[2] * gains[2]
+    ];
+    return xyzToHex(...lmsToXyz(...adaptedLMS));
+  }
+
+  function wavelengthToHex(w) {
+    let r=0, g=0, b=0;
+    if (w >= 380 && w < 440) { r = -(w-440)/60; b = 1; }
+    else if (w >= 440 && w < 490) { g = (w-440)/50; b = 1; }
+    else if (w >= 490 && w < 510) { g = 1; b = -(w-510)/20; }
+    else if (w >= 510 && w < 580) { r = (w-510)/70; g = 1; }
+    else if (w >= 580 && w < 645) { r = 1; g = -(w-645)/65; }
+    else if (w >= 645 && w <= 730) { r = 1; }
+    let factor = 1;
+    if (w > 700) factor = 0.3 + 0.7*(730-w)/30;
+    if (w < 420) factor = 0.3 + 0.7*(w-380)/40;
+    const toB = v => Math.round(Math.max(0, Math.min(1, v*factor))*255);
+    return `#${toB(r).toString(16).padStart(2,'0')}${toB(g).toString(16).padStart(2,'0')}${toB(b).toString(16).padStart(2,'0')}`;
+  }
+
+  function buildScene() {
+    const svg = sceneEl;
+    svg.innerHTML = "";
+
+    txt(svg, CURVES_BOX.x, CURVES_BOX.y - 38, "Cone spectral sensitivities",
+      { "font-size": 22, "font-weight": 700, fill: "#1a1a1a" });
+   
+
+    const ax = CURVES_BOX.x;
+    const ay = CURVES_BOX.y + CURVES_BOX.h;
+    svg.appendChild(el("line", {
+      x1: ax, y1: ay, x2: ax + CURVES_BOX.w, y2: ay,
+      stroke: "#bbb", "stroke-width": 1
+    }));
+
+    /* Spectrum band */
+    for (let w = minW; w < maxW; w += 5) {
+      const x = ax + (w - minW) / (maxW - minW) * CURVES_BOX.w;
+      const x2 = ax + (w + 5 - minW) / (maxW - minW) * CURVES_BOX.w;
+      svg.appendChild(el("rect", {
+        x, y: ay + 1, width: x2 - x + 0.5, height: 8,
+        fill: wavelengthToHex(w), opacity: 0.6
+      }));
+    }
+    for (let w = 400; w <= 700; w += 100) {
+      const x = ax + (w - minW) / (maxW - minW) * CURVES_BOX.w;
+      txt(svg, x, ay + 28, w + " nm", { "text-anchor": "middle", "font-size": 14, fill: "#777" });
+    }
+
+    /* gain=1.0 reference */
+    const refY = ay - 1.0 * Y_SCALE;
+    svg.appendChild(el("line", {
+      x1: ax, y1: refY, x2: ax + CURVES_BOX.w, y2: refY,
+      stroke: "#ddd", "stroke-width": 1, "stroke-dasharray": "4,4"
+    }));
+    txt(svg, ax + CURVES_BOX.w + 4, refY + 5, "1.0",
+      { "font-size": 13, fill: "#bbb" });
+
+    /* Cone curves */
+    CONE_NAMES.forEach((name, i) => {
+      const curve = CONE_CURVES[i];
+      const color = CONE_COLORS[i];
+      let strokeD = "";
+      WAVELENGTHS.forEach((w, idx) => {
+        const x = ax + (w - minW) / (maxW - minW) * CURVES_BOX.w;
+        const y = ay - curve[idx] * Y_SCALE;
+        strokeD += (idx === 0 ? "M " : "L ") + x.toFixed(1) + " " + y.toFixed(1) + " ";
+      });
+      svg.appendChild(el("path", {
+        id: `cone-fill-${name}`, d: "", fill: color, opacity: 0.25
+      }));
+      svg.appendChild(el("path", {
+        d: strokeD, fill: "none", stroke: color, "stroke-width": 1.4,
+        opacity: 0.25, "stroke-dasharray": "3,2"
+      }));
+      svg.appendChild(el("path", {
+        id: `cone-active-${name}`, d: strokeD, fill: "none",
+        stroke: color, "stroke-width": 2.6
+      }));
+
+      const peakIdx = curve.indexOf(Math.max(...curve));
+      const px = ax + (WAVELENGTHS[peakIdx] - minW) / (maxW - minW) * CURVES_BOX.w;
+      const py = ay - curve[peakIdx] * Y_SCALE;
+      txt(svg, px, py - 18, name,
+        { "text-anchor": "middle", "font-size": 22, "font-weight": 700, fill: color });
+      const gainTxt = txt(svg, px, py - 2, "1.00×",
+        { "text-anchor": "middle", "font-size": 14, "font-weight": 500, fill: color });
+      gainTxt.setAttribute('id', `cone-gain-${name}`);
+    });
+
+    /* Patches */
+    txt(svg, SCREEN_PATCH.x, SCREEN_PATCH.y - 12, "ON SCREEN",
+      { "font-size": 16, "font-weight": 700, fill: "#1a1a1a", "letter-spacing": "0.06em" });
+    svg.appendChild(el("rect", {
+      id: "cone-screen-patch",
+      x: SCREEN_PATCH.x, y: SCREEN_PATCH.y,
+      width: SCREEN_PATCH.w, height: SCREEN_PATCH.h,
+      rx: 4, fill: grayHex,
+      stroke: "#d8d3c8", "stroke-width": 1
+    }));
+    const sCx = SCREEN_PATCH.x + SCREEN_PATCH.w/2;
+    const sCy = SCREEN_PATCH.y + SCREEN_PATCH.h/2;
+    svg.appendChild(el("line", { x1: sCx-10, y1: sCy, x2: sCx+10, y2: sCy, stroke: "rgba(0,0,0,0.4)", "stroke-width": 2 }));
+    svg.appendChild(el("line", { x1: sCx, y1: sCy-10, x2: sCx, y2: sCy+10, stroke: "rgba(0,0,0,0.4)", "stroke-width": 2 }));
+
+    txt(svg, PERCEPT_PATCH.x, PERCEPT_PATCH.y - 12, "PERCEIVED",
+      { "font-size": 16, "font-weight": 700, fill: "#1a1a1a", "letter-spacing": "0.06em" });
+    svg.appendChild(el("rect", {
+      id: "cone-percept-patch",
+      x: PERCEPT_PATCH.x, y: PERCEPT_PATCH.y,
+      width: PERCEPT_PATCH.w, height: PERCEPT_PATCH.h,
+      rx: 4, fill: grayHex,
+      stroke: "#d8d3c8", "stroke-width": 1
+    }));
+    const pCx = PERCEPT_PATCH.x + PERCEPT_PATCH.w/2;
+    const pCy = PERCEPT_PATCH.y + PERCEPT_PATCH.h/2;
+    svg.appendChild(el("line", { x1: pCx-10, y1: pCy, x2: pCx+10, y2: pCy, stroke: "rgba(0,0,0,0.4)", "stroke-width": 2 }));
+    svg.appendChild(el("line", { x1: pCx, y1: pCy-10, x2: pCx, y2: pCy+10, stroke: "rgba(0,0,0,0.4)", "stroke-width": 2 }));
+
+    svg.appendChild(el("path", {
+      d: `M ${SCREEN_PATCH.x + SCREEN_PATCH.w/2} ${SCREEN_PATCH.y + SCREEN_PATCH.h + 12}
+          L ${SCREEN_PATCH.x + SCREEN_PATCH.w/2} ${PERCEPT_PATCH.y - 18}`,
+      stroke: "#bbb", "stroke-width": 2, "stroke-dasharray": "4,3", fill: "none"
+    }));
+    txt(svg, SCREEN_PATCH.x + SCREEN_PATCH.w/2 + 18,
+      (SCREEN_PATCH.y + SCREEN_PATCH.h + PERCEPT_PATCH.y) / 2 + 5,
+      "via cones",
+      { "font-style": "italic", fill: "#999", "font-size": 14 });
+  }
+
+  function updateScene(phaseName) {
+    const ax = CURVES_BOX.x;
+    const ay = CURVES_BOX.y + CURVES_BOX.h;
+    const gains = currentGains();
+    const cs = getColorState();
+
+    CONE_NAMES.forEach((name, i) => {
+      const curve = CONE_CURVES[i];
+      const gain = gains[i];
+      let fillD = `M ${ax} ${ay} `;
+      WAVELENGTHS.forEach((w, idx) => {
+        const x = ax + (w - minW) / (maxW - minW) * CURVES_BOX.w;
+        const y = ay - Math.min(Y_MAX, curve[idx] * gain) * Y_SCALE;
+        fillD += `L ${x.toFixed(1)} ${y.toFixed(1)} `;
+      });
+      fillD += `L ${ax + CURVES_BOX.w} ${ay} Z`;
+      document.getElementById(`cone-fill-${name}`).setAttribute('d', fillD);
+
+      let strokeD = "";
+      WAVELENGTHS.forEach((w, idx) => {
+        const x = ax + (w - minW) / (maxW - minW) * CURVES_BOX.w;
+        const y = ay - Math.min(Y_MAX, curve[idx] * gain) * Y_SCALE;
+        strokeD += (idx === 0 ? "M " : "L ") + x.toFixed(1) + " " + y.toFixed(1) + " ";
+      });
+      document.getElementById(`cone-active-${name}`).setAttribute('d', strokeD);
+
+      document.getElementById(`cone-gain-${name}`).textContent = gain.toFixed(2) + '×';
+    });
+
+    const screenPatch = document.getElementById('cone-screen-patch');
+    let screenLMS;
+    if (phaseName === 'ONSET') {
+      screenPatch.setAttribute('fill', cs.hex);
+      screenLMS = cs.colLMS;
+    } else {
+      screenPatch.setAttribute('fill', grayHex);
+      screenLMS = grayLMS;
+    }
+    document.getElementById('cone-percept-patch').setAttribute('fill', perceptHex(screenLMS));
+  }
+
+  function updateLabels(phaseName) {
+    const c = COLORS[state.colorIdx];
+    let label;
+    if (phaseName === 'IDLE') label = `Resting — ${c.name.toLowerCase()} next`;
+    else if (phaseName === 'ONSET') label = `Showing ${c.name.toLowerCase()} — adapting…`;
+    else label = `Gray — ${c.name.toLowerCase()} afterimage`;
+    document.getElementById('cone-phase').textContent = label;
+    document.getElementById('cone-cycle').textContent = ` ${state.colorIdx+1}/4`;
+  }
+
+  let lastT = null;
+  function tick(t) {
+    if (lastT === null) lastT = t;
+    const dt = (t - lastT) / 1000;
+    lastT = t;
+    if (!state.paused) {
+      const phaseName = PHASE_ORDER[state.phaseIdx];
+      const phaseDur = PHASES[phaseName].dur;
+      const phaseElapsed = t - state.phaseStart;
+      updateAlpha(phaseName, dt);
+      updateScene(phaseName);
+      updateLabels(phaseName);
+      if (phaseElapsed >= phaseDur) {
+        state.phaseIdx++;
+        if (state.phaseIdx >= PHASE_ORDER.length) {
+          state.phaseIdx = 0;
+          state.colorIdx = (state.colorIdx + 1) % COLORS.length;
+          state.alpha = [0, 0, 0];
+        }
+        state.phaseStart = t;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  const btnPlay = document.getElementById('cone-play');
+  const btnRestart = document.getElementById('cone-restart');
+  btnPlay.addEventListener('click', () => {
+    state.paused = !state.paused;
+    btnPlay.textContent = state.paused ? "Play" : "Pause";
+    if (!state.paused) lastT = null;
+  });
+  btnRestart.addEventListener('click', () => {
+    state.colorIdx = 0; state.phaseIdx = 0; state.alpha = [0, 0, 0];
+    state.phaseStart = performance.now(); lastT = null;
+  });
+
+  buildScene();
+  state.phaseStart = performance.now();
+  requestAnimationFrame(tick);
+})();
+
+/* ============================================================
+   VISUAL 5 — Opponent channel adaptation animation
+   ============================================================ */
+(function(){
+  const sceneEl = document.getElementById('opp-scene');
+  if (!sceneEl) return;
+
+  const { xyzToLms, lmsToXyz, xyzToLuv, xyzToHex, hueToXyz,
+          grayLMS, grayHex, grayLum, COLORS, PHASES, PHASE_ORDER, el, txt } = ADAPT;
+
+  function lmsToOpponent(lms) {
+    return {
+      RG: lms[0] - lms[1],
+      BY: lms[2] - (lms[0] + lms[1])/2
+    };
+  }
+  function opponentToLms(rg, by, lum) {
+    const M = (lum - 1.5*rg - by) / 3;
+    const L = M + rg;
+    const S = by + M + rg/2;
+    return [L, M, S];
+  }
+
+  /* Compute max signal magnitudes (for bar normalization) */
+  const SIG_MAX = (function() {
+    let mRG = 0, mBY = 0;
+    for (let h = 0; h < 360; h++) {
+      const op = lmsToOpponent(xyzToLms(...hueToXyz(h)));
+      if (Math.abs(op.RG) > mRG) mRG = Math.abs(op.RG);
+      if (Math.abs(op.BY) > mBY) mBY = Math.abs(op.BY);
+    }
+    return { RG: mRG, BY: mBY };
+  })();
+
+  const MAX_ALPHA = 0.85;
+
+  let state = {
+    colorIdx: 0, phaseIdx: 0, phaseStart: 0,
+    paused: false, alpha: [0, 0],
+    gainRG: 0.82, gainBY: 1.20
+  };
+
+  function getColorState() {
+    const c = COLORS[state.colorIdx];
+    const colXYZ = hueToXyz(c.hue);
+    const colLMS = xyzToLms(...colXYZ);
+    const op = lmsToOpponent(colLMS);
+    return { color: c, hex: xyzToHex(...colXYZ), colLMS,
+             inducerRG: op.RG, inducerBY: op.BY };
+  }
+  function updateAlpha(phaseName, dt) {
+    const target = (phaseName === 'ONSET') ? MAX_ALPHA : 0;
+    const tau = (phaseName === 'ONSET') ? 1.6 : 2.6;
+    for (let i = 0; i < 2; i++) {
+      const k = 1 - Math.exp(-dt / tau);
+      state.alpha[i] += (target - state.alpha[i]) * k;
+    }
+  }
+  function currentSignals(phaseName) {
+    const cs = getColorState();
+    if (phaseName === 'IDLE') return { rg: 0, by: 0 };
+    if (phaseName === 'ONSET') {
+      return {
+        rg: cs.inducerRG * (1 - state.alpha[0]),
+        by: cs.inducerBY * (1 - state.alpha[1])
+      };
+    }
+    return {
+      rg: -cs.inducerRG * state.alpha[0] * state.gainRG,
+      by: -cs.inducerBY * state.alpha[1] * state.gainBY
+    };
+  }
+  function perceptHex(phaseName) {
+    const sigs = currentSignals(phaseName);
+    const lms = opponentToLms(sigs.rg, sigs.by, grayLum);
+    return xyzToHex(...lmsToXyz(...lms));
+  }
+
+  /* Layout */
+  const BARS_BOX = { x: 60, y: 80, w: 540, h: 410 };
+  const PATCH_W = 260, PATCH_H = 160;
+  const SCREEN_PATCH = { x: 670, y: 90,  w: PATCH_W, h: PATCH_H };
+  const PERCEPT_PATCH = { x: 670, y: 320, w: PATCH_W, h: PATCH_H };
+
+  const CELL_W = 130;
+  const CELL_H = BARS_BOX.h - 100;
+  const CELL_GAP = 70;
+  const CELL_TOTAL_W = 2 * CELL_W + CELL_GAP;
+  const CELL_X0 = BARS_BOX.x + (BARS_BOX.w - CELL_TOTAL_W) / 2;
+  const CELL_Y0 = BARS_BOX.y + 50;
+  const CELL_MID_Y = CELL_Y0 + CELL_H / 2;
+
+  const CHANNELS = [
+    {
+      key: "rg", label: "R − G",
+      pos_label: "more red", pos_color: "#a8362a",
+      neg_label: "more green", neg_color: "#2f7d31",
+      sigMax: SIG_MAX.RG, cellX: CELL_X0
+    },
+    {
+      key: "by", label: "B − Y",
+      pos_label: "more blue", pos_color: "#3a5fa8",
+      neg_label: "more yellow", neg_color: "#b08a1a",
+      sigMax: SIG_MAX.BY, cellX: CELL_X0 + CELL_W + CELL_GAP
+    }
+  ];
+
+  function buildScene() {
+    const svg = sceneEl;
+    svg.innerHTML = "";
+
+    txt(svg, BARS_BOX.x, BARS_BOX.y - 38, "Opponent channel signals",
+      { "font-size": 22, "font-weight": 700, fill: "#1a1a1a" });
+
+    CHANNELS.forEach(ch => {
+      const x = ch.cellX;
+      svg.appendChild(el("rect", {
+        x, y: CELL_Y0, width: CELL_W, height: CELL_H,
+        fill: "#fff", stroke: "#e0d9cd", "stroke-width": 1, rx: 3
+      }));
+      svg.appendChild(el("line", {
+        x1: x, y1: CELL_MID_Y, x2: x + CELL_W, y2: CELL_MID_Y,
+        stroke: "#bbb", "stroke-width": 1.5, "stroke-dasharray": "4,3"
+      }));
+      txt(svg, x + CELL_W + 6, CELL_MID_Y + 5, "0",
+        { "font-size": 13, fill: "#bbb" });
+
+      txt(svg, x + CELL_W/2, CELL_Y0 - 12, ch.label,
+        { "text-anchor": "middle", "font-size": 22, "font-weight": 700, fill: ch.pos_color });
+
+      txt(svg, x + CELL_W/2, CELL_Y0 + 22, ch.pos_label,
+        { "text-anchor": "middle", "font-size": 14, fill: ch.pos_color, "font-style": "italic" });
+      txt(svg, x + CELL_W/2, CELL_Y0 + CELL_H - 10, ch.neg_label,
+        { "text-anchor": "middle", "font-size": 14, fill: ch.neg_color, "font-style": "italic" });
+
+      svg.appendChild(el("rect", {
+        id: `opp-bar-${ch.key}`,
+        x: x + 18, y: CELL_MID_Y, width: CELL_W - 36, height: 0,
+        fill: ch.pos_color, opacity: 0.85, rx: 2
+      }));
+
+      const valTxt = txt(svg, x + CELL_W/2, CELL_MID_Y - 4, "0.00",
+        { "text-anchor": "middle", "font-size": 14, "font-weight": 600, fill: "#444" });
+      valTxt.setAttribute('id', `opp-sig-${ch.key}`);
+    });
+
+    /* Patches */
+    txt(svg, SCREEN_PATCH.x, SCREEN_PATCH.y - 12, "ON SCREEN",
+      { "font-size": 16, "font-weight": 700, fill: "#1a1a1a", "letter-spacing": "0.06em" });
+    svg.appendChild(el("rect", {
+      id: "opp-screen-patch",
+      x: SCREEN_PATCH.x, y: SCREEN_PATCH.y,
+      width: SCREEN_PATCH.w, height: SCREEN_PATCH.h,
+      rx: 4, fill: grayHex,
+      stroke: "#d8d3c8", "stroke-width": 1
+    }));
+    const sCx = SCREEN_PATCH.x + SCREEN_PATCH.w/2;
+    const sCy = SCREEN_PATCH.y + SCREEN_PATCH.h/2;
+    svg.appendChild(el("line", { x1: sCx-10, y1: sCy, x2: sCx+10, y2: sCy, stroke: "rgba(0,0,0,0.4)", "stroke-width": 2 }));
+    svg.appendChild(el("line", { x1: sCx, y1: sCy-10, x2: sCx, y2: sCy+10, stroke: "rgba(0,0,0,0.4)", "stroke-width": 2 }));
+
+    txt(svg, PERCEPT_PATCH.x, PERCEPT_PATCH.y - 12, "PERCEIVED",
+      { "font-size": 16, "font-weight": 700, fill: "#1a1a1a", "letter-spacing": "0.06em" });
+    svg.appendChild(el("rect", {
+      id: "opp-percept-patch",
+      x: PERCEPT_PATCH.x, y: PERCEPT_PATCH.y,
+      width: PERCEPT_PATCH.w, height: PERCEPT_PATCH.h,
+      rx: 4, fill: grayHex,
+      stroke: "#d8d3c8", "stroke-width": 1
+    }));
+    const pCx = PERCEPT_PATCH.x + PERCEPT_PATCH.w/2;
+    const pCy = PERCEPT_PATCH.y + PERCEPT_PATCH.h/2;
+    svg.appendChild(el("line", { x1: pCx-10, y1: pCy, x2: pCx+10, y2: pCy, stroke: "rgba(0,0,0,0.4)", "stroke-width": 2 }));
+    svg.appendChild(el("line", { x1: pCx, y1: pCy-10, x2: pCx, y2: pCy+10, stroke: "rgba(0,0,0,0.4)", "stroke-width": 2 }));
+
+    svg.appendChild(el("path", {
+      d: `M ${SCREEN_PATCH.x + SCREEN_PATCH.w/2} ${SCREEN_PATCH.y + SCREEN_PATCH.h + 12}
+          L ${SCREEN_PATCH.x + SCREEN_PATCH.w/2} ${PERCEPT_PATCH.y - 18}`,
+      stroke: "#bbb", "stroke-width": 2, "stroke-dasharray": "4,3", fill: "none"
+    }));
+    txt(svg, SCREEN_PATCH.x + SCREEN_PATCH.w/2 + 18,
+      (SCREEN_PATCH.y + SCREEN_PATCH.h + PERCEPT_PATCH.y) / 2 + 5,
+      "via channels",
+      { "font-style": "italic", fill: "#999", "font-size": 14 });
+  }
+
+  function updateScene(phaseName) {
+    const sigs = currentSignals(phaseName);
+    const cs = getColorState();
+    CHANNELS.forEach(ch => {
+      const sig = sigs[ch.key];
+      const halfH = (CELL_H - 60) / 2;
+      const px = Math.max(-halfH, Math.min(halfH, (sig / ch.sigMax) * halfH));
+      const bar = document.getElementById(`opp-bar-${ch.key}`);
+      if (px >= 0) {
+        bar.setAttribute('y', CELL_MID_Y - px);
+        bar.setAttribute('height', px);
+        bar.setAttribute('fill', ch.pos_color);
+      } else {
+        bar.setAttribute('y', CELL_MID_Y);
+        bar.setAttribute('height', -px);
+        bar.setAttribute('fill', ch.neg_color);
+      }
+      document.getElementById(`opp-sig-${ch.key}`).textContent =
+        (sig >= 0 ? '+' : '') + sig.toFixed(2);
+    });
+
+    const screenPatch = document.getElementById('opp-screen-patch');
+    if (phaseName === 'ONSET') {
+      screenPatch.setAttribute('fill', cs.hex);
+    } else {
+      screenPatch.setAttribute('fill', grayHex);
+    }
+    document.getElementById('opp-percept-patch').setAttribute('fill', perceptHex(phaseName));
+  }
+  function updateLabels(phaseName) {
+    const c = COLORS[state.colorIdx];
+    let label;
+    if (phaseName === 'IDLE') label = `Resting — ${c.name.toLowerCase()} next`;
+    else if (phaseName === 'ONSET') label = `Showing ${c.name.toLowerCase()} — adapting…`;
+    else label = `Gray — ${c.name.toLowerCase()} afterimage`;
+    document.getElementById('opp-phase').textContent = label;
+    document.getElementById('opp-cycle').textContent = ` ${state.colorIdx+1}/4`;
+  }
+
+  let lastT = null;
+  function tick(t) {
+    if (lastT === null) lastT = t;
+    const dt = (t - lastT) / 1000;
+    lastT = t;
+    if (!state.paused) {
+      const phaseName = PHASE_ORDER[state.phaseIdx];
+      const phaseDur = PHASES[phaseName].dur;
+      const phaseElapsed = t - state.phaseStart;
+      updateAlpha(phaseName, dt);
+      updateScene(phaseName);
+      updateLabels(phaseName);
+      if (phaseElapsed >= phaseDur) {
+        state.phaseIdx++;
+        if (state.phaseIdx >= PHASE_ORDER.length) {
+          state.phaseIdx = 0;
+          state.colorIdx = (state.colorIdx + 1) % COLORS.length;
+          state.alpha = [0, 0];
+        }
+        state.phaseStart = t;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  const btnPlay = document.getElementById('opp-play');
+  const btnRestart = document.getElementById('opp-restart');
+  btnPlay.addEventListener('click', () => {
+    state.paused = !state.paused;
+    btnPlay.textContent = state.paused ? "Play" : "Pause";
+    if (!state.paused) lastT = null;
+  });
+  btnRestart.addEventListener('click', () => {
+    state.colorIdx = 0; state.phaseIdx = 0; state.alpha = [0, 0];
+    state.phaseStart = performance.now(); lastT = null;
+  });
+
+  /* Gain knobs */
+  const sliderRG = document.getElementById('gain-rg');
+  const sliderBY = document.getElementById('gain-by');
+  const valRG = document.getElementById('gain-rg-val');
+  const valBY = document.getElementById('gain-by-val');
+  sliderRG.addEventListener('input', () => {
+    state.gainRG = parseFloat(sliderRG.value);
+    valRG.textContent = state.gainRG.toFixed(2);
+  });
+  sliderBY.addEventListener('input', () => {
+    state.gainBY = parseFloat(sliderBY.value);
+    valBY.textContent = state.gainBY.toFixed(2);
+  });
+  document.getElementById('reset-gains').addEventListener('click', () => {
+    state.gainRG = 0.82; state.gainBY = 1.20;
+    sliderRG.value = "0.82"; sliderBY.value = "1.20";
+    valRG.textContent = "0.82"; valBY.textContent = "1.20";
+  });
+
+  buildScene();
+  state.phaseStart = performance.now();
+  requestAnimationFrame(tick);
+})();
+</script>
+
+</body>
+</html>
